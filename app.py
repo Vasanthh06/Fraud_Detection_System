@@ -190,16 +190,11 @@ if not st.session_state.logged_in:
         )
 
         if st.button("Create Account"):
-
             try:
-
                 register_user(name, signup_email, signup_password)
-
                 st.success("Account Created Successfully")
-
-            except Exception:
-
-                st.error("Email Already Exists")
+            except Exception as e:
+                st.error(f"Error: {e}")
 
 # ==========================
 # AFTER LOGIN
