@@ -1,0 +1,163 @@
+import streamlit as st
+import pandas as pd
+import sqlite3
+import plotly.express as px
+
+if not st.session_state.get("is_admin"):
+    st.error("Access Denied. Admin Login Required.")
+    st.stop()
+if not st.session_state.get("is_admin", False):
+
+    st.error("Access Denied. Admin Login Required.")
+
+    st.stop()
+if not st.session_state.get("is_admin", False):
+
+    st.error("Access Denied")
+
+    st.stop()
+
+st.set_page_config(page_title="Admin Dashboard", layout="wide")
+
+st.title("📊 Fraud Detection Admin Dashboard")
+
+# Database Connection
+conn = sqlite3.connect("database/fraud.db")
+
+df = pd.read_sql_query("SELECT * FROM transactions", conn)
+
+conn.close()
+
+if len(df) == 0:
+
+    st.warning("No Transactions Found")
+
+else:
+
+    # -----------------------------
+    # Search Customer
+    # -----------------------------
+    search = st.text_input("🔍 Search Customer")
+
+    if search:
+
+        df = df[df["customer_name"].str.contains(search, case=False, na=False)]
+
+    # -----------------------------
+    # Status Filter
+    # -----------------------------
+    status_filter = st.selectbox(
+        "Filter by Status", ["All", "Genuine", "Suspicious", "Fraud"]
+    )
+
+    if status_filter != "All":
+
+        df = df[df["status"] == status_filter]
+
+    # -----------------------------
+    # KPIs
+    # -----------------------------
+    total_transactions = len(df)
+
+    genuine_transactions = len(df[df["status"] == "Genuine"])
+
+    fraud_transactions = len(df[df["status"] == "Fraud"])
+
+    suspicious_transactions = len(df[df["status"] == "Suspicious"])
+
+    fraud_percentage = (
+        round((fraud_transactions / total_transactions) * 100, 2)
+        if total_transactions > 0
+        else 0
+    )
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    col1.metric("Total Transactions", total_transactions)
+
+    col2.metric("Genuine", genuine_transactions)
+
+    col3.metric("Fraud", fraud_transactions)
+
+    col4.metric("Suspicious", suspicious_transactions)
+
+    col5.metric("Fraud %", f"{fraud_percentage}%")
+
+    st.divider()
+
+    # -----------------------------
+    # Transaction Table
+    # -----------------------------
+    st.subheader("📋 Transaction History")
+
+    st.dataframe(
+        df[
+            [
+                "transaction_id",
+                "customer_name",
+                "product_name",
+                "amount",
+                "country",
+                "device_type",
+                "risk_score",
+                "fraud_reason",
+                "status",
+            ]
+        ].sort_values(by="transaction_id", ascending=False),
+        width="stretch",
+    )
+
+    # -----------------------------
+    # Download CSV
+    # -----------------------------
+    csv = df.to_csv(index=False)
+
+    st.download_button(
+        label="📥 Download Transactions",
+        data=csv,
+        file_name="transactions.csv",
+        mime="text/csv",
+    )
+
+    st.divider()
+
+    # -----------------------------
+    # Pie Chart
+    # -----------------------------
+    st.subheader("🥧 Transaction Distribution")
+
+    pie = px.pie(df, names="status", title="Fraud vs Genuine vs Suspicious")
+
+    st.plotly_chart(pie, width="stretch")
+
+    # -----------------------------
+    # Risk Score Chart
+    # -----------------------------
+    st.subheader("📈 Risk Score Analysis")
+
+    bar = px.bar(
+        df,
+        x="transaction_id",
+        y="risk_score",
+        color="status",
+        title="Risk Score Per Transaction",
+    )
+
+    st.plotly_chart(bar, width="stretch")
+
+    # -----------------------------
+    # Country Analysis
+    # -----------------------------
+    st.subheader("🌍 Country Wise Transactions")
+
+    country_chart = px.histogram(df, x="country", color="status", barmode="group")
+
+    st.plotly_chart(country_chart, width="stretch")
+st.markdown(
+    """
+<h1 style='text-align:center;color:#EF4444'>
+🛡️ Administrator Portal
+</h1>
+""",
+    unsafe_allow_html=True,
+)
