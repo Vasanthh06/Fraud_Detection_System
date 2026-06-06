@@ -21,21 +21,15 @@ else:
 
     for item in cart:
 
-        st.write(
-            f"📦 {item['name']} - ₹{item['price']:,}"
-        )
+        st.write(f"📦 {item['name']} - ₹{item['price']:,}")
 
         total += item["price"]
 
     st.divider()
 
-    st.subheader(
-        f"💰 Total Amount: ₹{total:,}"
-    )
+    st.subheader(f"💰 Total Amount: ₹{total:,}")
 
     st.session_state.total_amount = total
 
     if st.button("Proceed to Payment"):
-        st.switch_page("pages/Payment.py")
-        
-    
+        st.switch_page("pages/payment.py")
