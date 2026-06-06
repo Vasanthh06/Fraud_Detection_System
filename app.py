@@ -1,7 +1,9 @@
 from database.auth import register_user, login_user
 from datetime import datetime
 import streamlit as st
+from database.db import init_db
 
+init_db()
 st.set_page_config(
     page_title="Smart E-Commerce Fraud Detection", page_icon="💳", layout="wide"
 )
