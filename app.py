@@ -229,4 +229,4 @@ else:
 
 st.divider()
 
-st.caption("© 2026 Smart Shop • Secure Payments • Fraud Protection")
+st.caption("© 2026 Smart Shop • Secure Payments ")
