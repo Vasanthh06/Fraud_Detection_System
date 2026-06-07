@@ -1527,8 +1527,10 @@ def show_grid(product_list):
                     # Buttons
                     b1, b2 = st.columns(2)
                     with b1:
-                        # Dynamic unique key prevents duplicate widget ID crashes
-                        btn_key = f"btn_{row_start}_{col_idx}"
+                        # Creates a unique absolute string using a unique hash combination
+                        unique_seed = f"{product['name']}_{product.get('price', 0)}_{row_start}_{col_idx}"
+                        btn_key = f"btn_hash_{abs(hash(unique_seed))}"
+
                         if st.button("🛒 Add", key=btn_key, use_container_width=True):
                             if "cart" not in st.session_state:
                                 st.session_state.cart = []
