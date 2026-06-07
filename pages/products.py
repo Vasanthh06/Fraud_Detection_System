@@ -1473,7 +1473,6 @@ def show_grid(product_list):
             with cols[col_idx]:
                 with st.container(border=True):
                     # Image
-
                     try:
                         st.image(product["image"], width="stretch")
                     except:
@@ -1519,7 +1518,7 @@ def show_grid(product_list):
                         else ""
                     )
                     st.markdown(
-                        f'<span class="price-main">₹{product["price"]:,}</span>{old}',
+                        f'<div class="price-main">₹{product["price"]:,}</div>{old}',
                         unsafe_allow_html=True,
                     )
 
@@ -1528,10 +1527,13 @@ def show_grid(product_list):
                     # Buttons
                     b1, b2 = st.columns(2)
                     with b1:
-                        unique_key = f"add_{row_start}_{col_idx}_{product['name'][:10]}"
-                        if st.button("🛒 Add", key=..., use_container_width=True) 
+                        # Dynamic unique key prevents duplicate widget ID crashes
+                        btn_key = f"btn_{row_start}_{col_idx}"
+                        if st.button("🛒 Add", key=btn_key, use_container_width=True):
+                            if "cart" not in st.session_state:
+                                st.session_state.cart = []
                             st.session_state.cart.append(product)
-                            st.toast(f"✅ Added to cart!", icon="🛒")
+                            st.toast(f"✅ Added {product['name']} to cart!", icon="🛒")
                     with b2:
                         st.link_button(
                             "👁️ View", "https://www.amazon.in", use_container_width=True
