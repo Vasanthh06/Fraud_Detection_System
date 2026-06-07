@@ -5,310 +5,323 @@ import joblib
 import pandas as pd
 from datetime import datetime
 
+# ============================================================
+# 1. APPLICATION GATEWAY AUTHENTICATION CHECK
+# ============================================================
 if not st.session_state.get("logged_in"):
-    st.error("Please Login First")
+    st.error("Authentication Error: Please Login First")
     st.stop()
 
+# Safe loading of external pipeline functions
 from database.logger import save_transaction
+from database.auth import (
+    increment_failed_payment_streak,
+    reset_failed_payment_streak,
+    get_failed_payment_streak,
+)
 
-# ==========================================
+# Double check running streak status on page render
+user_email = st.session_state.get("user_email", "guest@shopzone.com")
+current_streak = get_failed_payment_streak(user_email)
 
-# LUHN VALIDATION
+if current_streak >= 3:
+    st.error(
+        "🚨 Access Violations Triggered: Your account has been suspended due to consecutive payment gateway threshold failures. Session Terminated."
+    )
+    st.session_state.logged_in = False
+    st.session_state.is_admin = False
+    st.stop()
 
-# ==========================================
 
-
+# ============================================================
+# 2. CORE SECURITY LOGICAL ALGORITHMS
+# ============================================================
 def luhn_check(card_number):
     total = 0
-
     reverse_digits = card_number[::-1]
-
     for i, digit in enumerate(reverse_digits):
         n = int(digit)
-
         if i % 2 == 1:
             n *= 2
-
             if n > 9:
                 n -= 9
-
         total += n
-
     return total % 10 == 0
-
-
-# ==========================================
-
-# CARD TYPE
-
-# ==========================================
 
 
 def get_card_type(card_number):
     if card_number.startswith("4"):
         return "Visa"
-
     elif card_number.startswith("5"):
         return "MasterCard"
-
     elif card_number.startswith("6"):
         return "RuPay"
-
     elif card_number.startswith("34") or card_number.startswith("37"):
         return "American Express"
-
     return "Unknown"
 
 
-# ==========================================
+# ============================================================
+# 3. COMPILING MACHINE LEARNING PARAMS
+# ============================================================
+@st.cache_resource
+def load_ml_pipeline():
+    try:
+        model = joblib.load("models/ecommerce_fraud_model.pkl")
+        encoder = joblib.load("models/ecommerce_encoder.pkl")
+        return model, encoder
+    except:
+        return None, None
 
-# LOAD MODEL
 
-# ==========================================
+model, encoder = load_ml_pipeline()
 
-model = joblib.load("models/ecommerce_fraud_model.pkl")
-
-encoder = joblib.load("models/ecommerce_encoder.pkl")
-
-st.title("💳 Secure Payment Gateway")
+# ============================================================
+# 4. SECURE USER INTERFACE WINDOW (100% CLEAN NATIVE STOREFRONT)
+# ============================================================
+st.title("💳 Secure Bank Payment Gateway")
 
 amount = st.session_state.get("total_amount", 0)
 
 if amount == 0:
-    st.warning("Please add products to your cart first.")
-
+    st.warning("Your active shopping bag is empty.")
+    st.stop()
 else:
-    st.subheader(f"Total Amount: ₹{amount:,}")
+    st.subheader(f"Total Amount Payable: ₹{amount:,}")
 
+# Clean fields visible to a customer shopper
 customer_name = st.text_input("Card Holder Name")
 
-card_number = st.text_input(
-    "Card Number", placeholder="1234-5678-9012-3456", help="Enter 16-digit card number"
+# --- NATIVE MAXIMUM LIMIT FIELDS (Physically stops input typing length) ---
+raw_card_input = st.text_input(
+    "Card Number",
+    placeholder="XXXX-XXXX-XXXX-XXXX",
+    max_chars=19,  # 16 digits + 3 hyphens = 19 characters total max
+    help="Type your 16-digit card number",
 )
 
-if card_number:
+col_exp, col_cvv = st.columns(2)
+with col_exp:
+    raw_expiry_input = st.text_input(
+        "Expiry Date",
+        placeholder="MM/YY",
+        max_chars=5,  # MM/YY = exactly 5 characters total max
+        help="Format: MM/YY",
+    )
+with col_cvv:
+    cvv = st.text_input(
+        "CVV/CVC",
+        type="password",
+        placeholder="•••",
+        max_chars=3,  # CVV = exactly 3 characters total max
+    )
 
-    temp = card_number.replace("-", "")
+# Extract raw cleaned numbers out of inputs for our calculations
+clean_card = re.sub(r"\D", "", raw_card_input).strip() if raw_card_input else ""
+clean_expiry = re.sub(r"\D", "", raw_expiry_input).strip() if raw_expiry_input else ""
 
-    if temp.startswith("4"):
-        st.success("💳 Visa Card")
+# Visual feedback: Show the card type dynamically if it's a number
+if clean_card:
+    card_type = get_card_type(clean_card)
+    if card_type != "Unknown":
+        st.caption(f"Network standard match verified: **{card_type} Card**")
 
-    elif temp.startswith("5"):
-        st.success("💳 MasterCard")
+# Hidden System Background Variables
+country = "India"
+failed_attempts = current_streak
 
-    elif temp.startswith("6"):
-        st.success("💳 RuPay Card")
-
-expiry = st.text_input("Expiry Date (MM/YY)", placeholder="12/28")
-
-cvv = st.text_input("CVV", type="password", placeholder="123")
-st.markdown("### 💳 Card Preview")
-
-preview_name = customer_name if customer_name else "YOUR NAME"
-
-preview_card = card_number if card_number else "XXXX-XXXX-XXXX-XXXX"
-
-preview_expiry = expiry if expiry else "MM/YY"
-
-st.info(f"""
-Card Holder : {preview_name}
-
-Card Number : {preview_card}
-
-Expiry : {preview_expiry}
-""")
-
-country = st.selectbox("Country", ["India", "USA", "China", "Russia", "Other"])
-
-failed_attempts = st.number_input(
-    "Previous Failed Attempts", min_value=0, max_value=10, value=0
+st.markdown("---")
+st.caption(
+    "🔒 Secured Protocol Endpoint • PCI-DSS Banking Vault Architecture Standard Active"
 )
-st.success("🔒 SSL Secured Payment")
 
-st.info("""
-✔ PCI DSS Compliant
+# ============================================================
+# 5. TRANSACTION DISPATCH & SECURE INFRASTRUCTURE PROCESSING
+# ============================================================
+if st.button("Complete Secure Payment", type="primary", use_container_width=True):
 
-✔ Encrypted Banking Gateway
-
-✔ Fraud Detection Enabled
-
-✔ Secure Transaction Monitoring
-""")
-if st.button("Pay Now"):
-
-    if customer_name.strip() == "":
-
-        st.error("Card Holder Name Required")
+    # Check field requirements
+    if (
+        not customer_name.strip()
+        or not clean_card
+        or not clean_expiry
+        or not cvv.strip()
+    ):
+        st.error("Validation Error: All processing credential parameters are required.")
         st.stop()
 
-    if not customer_name.replace(" ", "").isalpha():
+    # --- FINAL BACKEND STANDARDIZED AUTO-FORMATTING FOR LEDGER EXPORT ---
+    if len(clean_card) == 16:
+        formatted_card = f"{clean_card[0:4]}-{clean_card[4:8]}-{clean_card[8:12]}-{clean_card[12:16]}"
+    else:
+        formatted_card = raw_card_input.strip()
 
-        st.error("Name must contain letters only")
-        st.stop()
+    if len(clean_expiry) == 4:
+        formatted_expiry = f"{clean_expiry[0:2]}/{clean_expiry[2:4]}"
+    else:
+        formatted_expiry = raw_expiry_input.strip()
 
-    clean_card = card_number.replace("-", "")
-
-    if not clean_card.isdigit():
-
-        st.error("Card Number must contain digits only")
-        st.stop()
-
-    if len(clean_card) != 16:
-
-        st.error("Card Number must contain exactly 16 digits")
-        st.stop()
-
-    if len(set(clean_card)) == 1:
-
-        st.error("Invalid Card Number")
-        st.stop()
-
-    if clean_card in ["1234567890123456", "9876543210987654"]:
-
-        st.error("Sequential Card Numbers Not Allowed")
-        st.stop()
-
-    if not cvv.isdigit():
-
-        st.error("CVV must contain digits only")
-        st.stop()
-
-    if len(cvv) != 3:
-
-        st.error("CVV must contain exactly 3 digits")
-        st.stop()
-
-    pattern = r"^(0[1-9]|1[0-2])\/([0-9]{2})$"
-
-    if not re.match(pattern, expiry):
-
-        st.error("Expiry must be MM/YY format")
-        st.stop()
-
+    transaction_id = str(uuid.uuid4())[:8]
     cart = st.session_state.get("cart", [])
-
-    product_names = ", ".join([item["name"] for item in cart])
-
+    product_names = (
+        ", ".join([item["name"] for item in cart])
+        if cart
+        else "E-Commerce Goods Portfolio"
+    )
     transaction_hour = datetime.now().hour
+    device_type = "Web Browser Portal"
+    masked_card = (
+        f"**** **** **** {clean_card[-4:]}" if len(clean_card) >= 4 else "****"
+    )
 
-    device_type = "Desktop"
-
-    # INVALID CARD CHECK
-
-    if not luhn_check(clean_card):
-        transaction_id = str(uuid.uuid4())[:8]
+    # --- ACTION 1: CHECK STRUCTURAL INTEGRITY LENGTH ---
+    if len(clean_card) != 16 or not clean_card.isdigit():
+        increment_failed_payment_streak(user_email)
+        new_streak = current_streak + 1
 
         save_transaction(
             transaction_id,
             customer_name,
             product_names,
-            "INVALID CARD",
+            "INVALID STRUCTURE",
             amount,
             country,
             device_type,
             transaction_hour,
-            failed_attempts,
-            100,
-            "Failed Luhn Validation",
-            "Rejected",
+            new_streak,
+            100.0,
+            f"Malformed Input Configuration: Lockout sequence [{new_streak}/3]",
+            "Fraud",
         )
 
-        st.error("🚨 Invalid Card Number.\n\nTransaction Logged As Rejected.")
-
+        if new_streak >= 3:
+            st.error(
+                "🚨 Account Suspended: System detected critical payment credential processing errors. Access blocked for 24 hours."
+            )
+            st.session_state.logged_in = False
+            st.rerun()
+        else:
+            st.error(
+                f"❌ Payment Declined: Invalid card layout metrics. ({new_streak}/3 failed attempts)"
+            )
         st.stop()
 
-    # ==================================
-    # ML PREDICTION
-    # ==================================
+    # --- ACTION 2: STRUCTURAL CHECK (Luhn Tracking Validation) ---
+    if not luhn_check(clean_card):
+        increment_failed_payment_streak(user_email)
+        new_streak = current_streak + 1
 
-    country_encoded = encoder.transform([country])[0]
+        save_transaction(
+            transaction_id,
+            customer_name,
+            product_names,
+            masked_card,
+            amount,
+            country,
+            device_type,
+            transaction_hour,
+            new_streak,
+            100.0,
+            f"Luhn Check Algorithmic Defection: Strike [{new_streak}/3]",
+            "Fraud",
+        )
 
-    input_df = pd.DataFrame(
-        [[amount, country_encoded, transaction_hour, failed_attempts]],
-        columns=["amount", "country", "transaction_hour", "failed_attempts"],
-    )
+        if new_streak >= 3:
+            st.error(
+                "🚨 Account Suspended: System detected critical payment credential processing errors. Access blocked for 24 hours."
+            )
+            st.session_state.logged_in = False
+            st.rerun()
+        else:
+            st.error(
+                f"❌ Payment Declined: Authorization failed. Please review your card details. ({new_streak}/3 failed attempts)"
+            )
+        st.stop()
 
-    prediction = model.predict(input_df)[0]
+    # ============================================================
+    # 6. ASYNCHRONOUS MACHINE LEARNING MODEL INFERENCE PIPELINE
+    # ============================================================
+    if model and encoder:
+        try:
+            country_encoded = encoder.transform([country])[0]
+            input_df = pd.DataFrame(
+                [[amount, country_encoded, transaction_hour, failed_attempts]],
+                columns=["amount", "country", "transaction_hour", "failed_attempts"],
+            )
+            prediction = model.predict(input_df)[0]
+            probability = model.predict_proba(input_df)[0][1]
+            risk_score = round(float(probability) * 100, 2)
+        except:
+            prediction = 1 if (amount > 150000 or failed_attempts >= 2) else 0
+            risk_score = 90.0 if prediction == 1 else 15.0
+    else:
+        prediction = 1 if (amount > 150000 or failed_attempts >= 2) else 0
+        risk_score = 90.0 if prediction == 1 else 15.0
 
-    probability = model.predict_proba(input_df)[0][1]
+    # ============================================================
+    # 7. LOG TRANSACTION OUTCOME AND IMPLEMENT SECURITY ISOLATION
+    # ============================================================
+    if prediction == 1 or risk_score >= 80.0:
+        increment_failed_payment_streak(user_email)
+        new_streak = current_streak + 1
 
-    risk_score = round(probability * 100, 2)
+        save_transaction(
+            transaction_id,
+            customer_name,
+            product_names,
+            masked_card,
+            amount,
+            country,
+            device_type,
+            transaction_hour,
+            new_streak,
+            risk_score,
+            f"High-Risk ML Scoring Signal Flags: Strike [{new_streak}/3]",
+            "Fraud",
+        )
 
-    fraud_reasons = []
-
-    if amount > 200000:
-        fraud_reasons.append("High Amount")
-
-    if failed_attempts >= 5:
-        fraud_reasons.append("Multiple Failed Attempts")
-
-    if country in ["Russia", "China"]:
-        fraud_reasons.append("High Risk Country")
-
-    if transaction_hour >= 0 and transaction_hour <= 4:
-        fraud_reasons.append("Midnight Transaction")
-
-    fraud_reason_text = ", ".join(fraud_reasons)
-
-    transaction_id = str(uuid.uuid4())[:8]
-
-    masked_card = "**** **** **** " + clean_card[-4:]
-
-    card_type = get_card_type(clean_card)
-
-    if prediction == 1:
-
-        status = "Fraud"
-
-        st.error(f"🚨 Fraud Detected\n\nFraud Probability: {risk_score}%")
+        if new_streak >= 3:
+            st.error(
+                "🚨 Account Suspended: This profile has been temporarily locked due to atypical execution pattern detection. Retries blocked for 24 hours."
+            )
+            st.session_state.logged_in = False
+            st.rerun()
+        else:
+            st.error(
+                f"❌ Transaction Refused: Payment authorization failed. Please contact card issuing bank parameters. ({new_streak}/3 failed attempts)"
+            )
 
     else:
+        # Successful execution! Clear user strike count
+        reset_failed_payment_streak(user_email)
 
-        status = "Genuine"
+        save_transaction(
+            transaction_id,
+            customer_name,
+            product_names,
+            masked_card,
+            amount,
+            country,
+            device_type,
+            transaction_hour,
+            0,
+            risk_score,
+            "Passed Gateway Safety Parameters",
+            "Genuine",
+        )
 
-        st.success(f"✅ Genuine Transaction\n\nFraud Probability: {risk_score}%")
+        st.success("🎉 Authorization Complete! Processing payment allocation pipeline.")
 
-    save_transaction(
-        transaction_id,
-        customer_name,
-        product_names,
-        masked_card,
-        amount,
-        country,
-        device_type,
-        transaction_hour,
-        failed_attempts,
-        risk_score,
-        fraud_reason_text,
-        status,
-    )
+        with st.expander("🧾 Open Invoice Receipt Summary", expanded=True):
+            st.write(f"**Transaction Settlement ID:** `{transaction_id}`")
+            st.write(
+                f"**Network Endpoint:** Verified {get_card_type(clean_card)} Auth Mode"
+            )
+            st.write(f"**Card Number Saved:** `{formatted_card}`")
+            st.write(f"**Expiry Date Processed:** `{formatted_expiry}`")
+            st.write(f"**Authorized Charge:** ₹{amount:,}")
+            st.write(f"**Status Code:** Settled / Verified")
 
-    st.divider()
-
-    st.subheader("🧾 Payment Receipt")
-
-    st.write("Transaction ID:", transaction_id)
-
-    st.write("Customer:", customer_name)
-
-    st.write("Products:", product_names)
-
-    st.write("Card:", masked_card)
-
-    st.write("Card Type:", card_type)
-
-    st.write("Amount:", f"₹{amount:,}")
-
-    st.write("Country:", country)
-
-    st.write("Device:", device_type)
-
-    st.write("Transaction Time:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-    st.write("Fraud Probability:", f"{risk_score}%")
-
-    st.write("Fraud Reasons:", fraud_reason_text if fraud_reason_text else "None")
-
-    st.write("Status:", status)
-
-    st.session_state.cart = []
+        st.session_state.cart = []
+        st.session_state.total_amount = 0
+        st.button("Return to Home", on_click=lambda: st.switch_page("pages/home.py"))
