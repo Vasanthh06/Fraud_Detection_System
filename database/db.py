@@ -1,15 +1,14 @@
 import sqlite3
 import os
 
-# Database path
-DB_PATH = os.path.join(os.path.dirname(__file__), "fraud.db")
+DB_PATH = "database/fraud.db"
 
 
 def init_db():
+    os.makedirs("database", exist_ok=True)  # ensure folder exists on cloud
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # USERS TABLE
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,7 +19,6 @@ def init_db():
     )
     """)
 
-    # TRANSACTIONS TABLE
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS transactions(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,5 +42,4 @@ def init_db():
     conn.close()
 
 
-# Automatically create database when imported
 init_db()

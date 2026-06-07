@@ -1475,11 +1475,11 @@ def show_grid(product_list):
                     # Image
 
                     try:
-                        st.image(product["image"], use_container_width=True)
+                        st.image(product["image"], width="stretch")
                     except:
                         st.image(
                             "https://via.placeholder.com/300x300?text=No+Image",
-                            use_container_width=True,
+                            width="stretch",
                         )
                     # Badge
                     badge = product.get("badge", "")
@@ -1529,9 +1529,7 @@ def show_grid(product_list):
                     b1, b2 = st.columns(2)
                     with b1:
                         unique_key = f"add_{row_start}_{col_idx}_{product['name'][:10]}"
-                        if st.button(
-                            "🛒 Add", key=unique_key, use_container_width=True
-                        ):
+                        if st.button("🛒 Add", key=..., use_container_width=True) 
                             st.session_state.cart.append(product)
                             st.toast(f"✅ Added to cart!", icon="🛒")
                     with b2:
