@@ -1,1 +1,1 @@
-# Makes 'database' a Python package — required for imports to work
+# makes database a Python package
