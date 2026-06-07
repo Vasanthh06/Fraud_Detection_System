@@ -2,27 +2,30 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import plotly.express as px
-
-if not st.session_state.get("is_admin"):
-    st.error("Access Denied. Admin Login Required.")
-    st.stop()
-if not st.session_state.get("is_admin", False):
-
-    st.error("Access Denied. Admin Login Required.")
-
-    st.stop()
-if not st.session_state.get("is_admin", False):
-
-    st.error("Access Denied")
-
-    st.stop()
+import streamlit as st
+import pandas as pd
+import sqlite3
+import plotly.express as px
+import os
 
 st.set_page_config(page_title="Admin Dashboard", layout="wide")
+
+
+if not st.session_state.get("is_admin", False):
+    st.error("Access Denied. Admin Login Required.")
+    st.stop()
+
 
 st.title("📊 Fraud Detection Admin Dashboard")
 
 # Database Connection
-conn = sqlite3.connect("database/fraud.db")
+import os
+
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "database", "fraud.db"
+)
+
+conn = sqlite3.connect(DB_PATH)
 
 df = pd.read_sql_query("SELECT * FROM transactions", conn)
 

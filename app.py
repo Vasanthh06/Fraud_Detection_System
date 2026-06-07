@@ -210,7 +210,7 @@ else:
 
         if st.button("Open Admin Dashboard"):
 
-            st.switch_page("dashboard/admin.py")
+            st.switch_page("pages/admin.py")
 
     else:
 
