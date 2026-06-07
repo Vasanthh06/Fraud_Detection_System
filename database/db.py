@@ -5,22 +5,24 @@ DB_PATH = "database/fraud.db"
 
 
 def init_db():
-    os.makedirs("database", exist_ok=True)  # ensure folder exists on cloud
+    """Create database folder and tables if they don't exist."""
+    os.makedirs("database", exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users(
+    CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
+        role TEXT DEFAULT 'user',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS transactions(
+    CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         transaction_id TEXT,
         customer_name TEXT,
@@ -42,4 +44,5 @@ def init_db():
     conn.close()
 
 
+# Auto-run when imported
 init_db()
