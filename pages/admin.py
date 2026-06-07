@@ -2,10 +2,6 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import plotly.express as px
-import streamlit as st
-import pandas as pd
-import sqlite3
-import plotly.express as px
 import os
 
 st.set_page_config(page_title="Admin Dashboard", layout="wide")
@@ -19,8 +15,6 @@ if not st.session_state.get("is_admin", False):
 st.title("📊 Fraud Detection Admin Dashboard")
 
 # Database Connection
-import os
-
 DB_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "database", "fraud.db"
 )
@@ -116,7 +110,7 @@ else:
     csv = df.to_csv(index=False)
 
     st.download_button(
-        label="📥 Download Transactions",
+        label="📥 Download Transactions CSV Report",
         data=csv,
         file_name="transactions.csv",
         mime="text/csv",
@@ -156,6 +150,28 @@ else:
     country_chart = px.histogram(df, x="country", color="status", barmode="group")
 
     st.plotly_chart(country_chart, width="stretch")
+
+# ============================================================
+# NEW: DIRECT SQLITE RAW DATABASE MAINTENANCE DOWNLOAD PORTAL
+# ============================================================
+st.divider()
+st.subheader("📦 Production Database Systems Maintenance")
+
+if os.path.exists(DB_PATH):
+    with open(DB_PATH, "rb") as db_file:
+        st.download_button(
+            label="📥 Download Raw SQLite Database File (.db)",
+            data=db_file,
+            file_name="fraud_live_database.db",
+            mime="application/octet-stream",
+            use_container_width=True,
+            type="primary",
+        )
+else:
+    st.error(
+        "System Footprint Error: The active SQLite database file could not be localized on the hosting platform."
+    )
+
 st.markdown(
     """
 <h1 style='text-align:center;color:#EF4444'>
