@@ -128,7 +128,7 @@ if st.session_state.admin_login:
 
             st.success("Admin Login Successful")
 
-            st.switch_page("dashboard/admin.py")
+            st.switch_page("pages/admin.py")
 
         else:
 
