@@ -15,7 +15,18 @@ if not st.session_state.get("logged_in"):
     st.stop()
 
 # ==================================
-# CUSTOM CSS
+# SETUP CART STATE
+# ==================================
+
+if "cart" not in st.session_state:
+    st.session_state.cart = []
+
+# Dynamic calculations for the floating cart
+total = sum(item["price"] for item in st.session_state.cart)
+count = len(st.session_state.cart)
+
+# ==================================
+# CUSTOM CSS WITH FLOATING CART FIX
 # ==================================
 
 st.markdown(
@@ -126,7 +137,7 @@ html, body, [class*="css"] {
     margin-bottom: 6px;
 }
 
-/* CART BAR */
+/* CART BAR BOTTOM */
 .cart-bar {
     background: linear-gradient(90deg, #5c3ef5, #7c3aed);
     color: white;
@@ -139,6 +150,40 @@ html, body, [class*="css"] {
     font-family: 'Syne', sans-serif;
     font-weight: 700;
     font-size: 1rem;
+}
+
+/* FLOATING TOP-RIGHT CART BUTTON */
+.floating-cart-btn {
+    position: fixed;
+    top: 60px;
+    right: 40px;
+    background: linear-gradient(135deg, #5c3ef5, #7c3aed);
+    color: white !important;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    box-shadow: 0 10px 25px rgba(92, 62, 245, 0.4);
+    z-index: 999999;
+    text-decoration: none !important;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+.floating-cart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(92, 62, 245, 0.5);
+    color: #ffd700 !important;
+}
+.cart-count-badge {
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: 800;
 }
 
 /* INPUTS */
@@ -176,10 +221,39 @@ div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlockBorderWrapper
 )
 
 # ==================================
+# ==================================
+# TOP FLOATING CART
+# ==================================
+
+if count > 0:
+
+    cart_col1, cart_col2 = st.columns([8, 2])
+
+    with cart_col2:
+
+        st.metric("🛒 Cart", f"{count} Items", f"₹{total:,}")
+
+        if st.button(
+            f"💳 Checkout ({count})",
+            key="top_checkout_btn",
+            use_container_width=True,
+            type="primary",
+        ):
+            st.session_state.total_amount = total
+            st.switch_page("pages/payment.py")
+
+# Catch the action hook from the floating cart hyperlink redirect
+query_params = st.query_params
+if query_params.get("action") == "checkout":
+    st.session_state.total_amount = total
+    st.query_params.clear()  # Clear query parameter cleanly
+    st.switch_page("pages/payment.py")
+
+# ==================================
 # LOGOUT
 # ==================================
 
-_, col_logout = st.columns([11, 1])
+_, col_logout = st.columns([11, 3])
 with col_logout:
     if st.button("🚪 Logout"):
         st.session_state.logged_in = False
@@ -1392,25 +1466,22 @@ all_products = [
         "badge": "new",
     },
 ]
+
 # Remove corrupted products
 clean_products = []
-
 for p in all_products:
     if isinstance(p, dict):
         required = ["name", "price", "rating", "desc", "image", "category"]
-
         if all(key in p for key in required):
             clean_products.append(p)
 
 all_products = clean_products
+
 # ==================================
-# SETUP
+# CATEGORY OPTIONS
 # ==================================
 
 categories = ["All"] + sorted(list(set(p["category"] for p in all_products)))
-
-if "cart" not in st.session_state:
-    st.session_state.cart = []
 
 # ==================================
 # CONTROLS
@@ -1459,7 +1530,7 @@ st.markdown(
 )
 
 # ==================================
-# PRODUCT GRID — uses ONLY native Streamlit widgets
+# PRODUCT GRID
 # ==================================
 
 COLS = 4
@@ -1474,11 +1545,11 @@ def show_grid(product_list):
                 with st.container(border=True):
                     # Image
                     try:
-                        st.image(product["image"], width="stretch")
+                        st.image(product["image"], use_container_width=True)
                     except:
                         st.image(
                             "https://via.placeholder.com/300x300?text=No+Image",
-                            width="stretch",
+                            use_container_width=True,
                         )
                     # Badge
                     badge = product.get("badge", "")
@@ -1493,19 +1564,15 @@ def show_grid(product_list):
                             unsafe_allow_html=True,
                         )
 
-                    # Name
+                    # Name / Info
                     st.markdown(
                         f'<div class="product-name-text">{product["name"]}</div>',
                         unsafe_allow_html=True,
                     )
-
-                    # Desc
                     st.markdown(
                         f'<div class="product-desc-text">{product["desc"]}</div>',
                         unsafe_allow_html=True,
                     )
-
-                    # Rating
                     st.markdown(
                         f'<div class="product-rating-text">{product["rating"]}</div>',
                         unsafe_allow_html=True,
@@ -1527,15 +1594,13 @@ def show_grid(product_list):
                     # Buttons
                     b1, b2 = st.columns(2)
                     with b1:
-                        # Creates a unique absolute string using a unique hash combination
                         unique_seed = f"{product['name']}_{product.get('price', 0)}_{row_start}_{col_idx}"
                         btn_key = f"btn_hash_{abs(hash(unique_seed))}"
 
                         if st.button("🛒 Add", key=btn_key, use_container_width=True):
-                            if "cart" not in st.session_state:
-                                st.session_state.cart = []
                             st.session_state.cart.append(product)
-                            st.toast(f"✅ Added {product['name']} to cart!", icon="🛒")
+                            st.toast(f"✅ {product['name']} added to cart", icon="🛒")
+                            st.rerun()  # Instantly updates top-right badge values
                     with b2:
                         st.link_button(
                             "👁️ View", "https://www.amazon.in", use_container_width=True
@@ -1543,7 +1608,7 @@ def show_grid(product_list):
 
 
 # ==================================
-# RENDER
+# RENDER GRID
 # ==================================
 
 if selected_cat == "All" and not search:
@@ -1586,13 +1651,10 @@ else:
         show_grid(filtered)
 
 # ==================================
-# CART BAR
+# BOTTOM SUMMARY BAR (Optional fallback)
 # ==================================
 
 st.divider()
-
-total = sum(item["price"] for item in st.session_state.cart)
-count = len(st.session_state.cart)
 
 st.markdown(
     f"""

@@ -7,3 +7,4 @@ dataset/creditcard.csv
 dataset/archive.zip
 fraud.db
 database/fraud.db
+venv/

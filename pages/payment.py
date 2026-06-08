@@ -20,7 +20,10 @@ from database.auth import (
     get_failed_payment_streak,
 )
 
-# Double check running streak status on page render
+# Initialize payment success state if not present
+if "payment_success" not in st.session_state:
+    st.session_state.payment_success = False
+
 user_email = st.session_state.get("user_email", "guest@shopzone.com")
 current_streak = get_failed_payment_streak(user_email)
 
@@ -76,8 +79,54 @@ def load_ml_pipeline():
 
 model, encoder = load_ml_pipeline()
 
+
 # ============================================================
-# 4. SECURE USER INTERFACE WINDOW (100% CLEAN NATIVE STOREFRONT)
+# NEW: CONDITIONAL STATE SCREEN SWITCH
+# If the payment has already completed, display ONLY the success screen.
+# ============================================================
+if st.session_state.payment_success:
+    st.success("🎉 Payment Successful!")
+
+    st.markdown(
+        """
+        <div style="
+            text-align:center;
+            padding:30px;
+            border-radius:15px;
+            background:#f0fff4;
+            border:2px solid #38a169;
+        ">
+            <h1>✅ Thank You For Shopping With ShopZone</h1>
+            <h3>Your Order Has Been Placed Successfully</h3>
+            <p>We appreciate your purchase.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.write("")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("🛍️ Continue Shopping", use_container_width=True, type="primary"):
+            st.session_state.payment_success = False  # Reset state before leaving
+            st.switch_page("pages/products.py")
+
+    with col2:
+        if st.button("🚪 Logout", use_container_width=True):
+            st.session_state.logged_in = False
+            st.session_state.is_admin = False
+            st.session_state.admin_login = False
+            st.session_state.login_time = None
+            st.session_state.user_email = ""
+            st.session_state.payment_success = False
+            st.switch_page("app.py")
+
+    st.stop()  # HALTS SCRIPT EXECUTION HERE SO FORM IS NOT SEEN AFTER SUCCESS
+
+
+# ============================================================
+# 4. SECURE USER INTERFACE WINDOW (PAYMENT FORM)
 # ============================================================
 st.title("💳 Secure Bank Payment Gateway")
 
@@ -89,14 +138,12 @@ if amount == 0:
 else:
     st.subheader(f"Total Amount Payable: ₹{amount:,}")
 
-# Clean fields visible to a customer shopper
 customer_name = st.text_input("Card Holder Name")
 
-# --- NATIVE MAXIMUM LIMIT FIELDS (Physically stops input typing length) ---
 raw_card_input = st.text_input(
     "Card Number",
     placeholder="XXXX-XXXX-XXXX-XXXX",
-    max_chars=19,  # 16 digits + 3 hyphens = 19 characters total max
+    max_chars=19,
     help="Type your 16-digit card number",
 )
 
@@ -105,7 +152,7 @@ with col_exp:
     raw_expiry_input = st.text_input(
         "Expiry Date",
         placeholder="MM/YY",
-        max_chars=5,  # MM/YY = exactly 5 characters total max
+        max_chars=5,
         help="Format: MM/YY",
     )
 with col_cvv:
@@ -113,20 +160,17 @@ with col_cvv:
         "CVV/CVC",
         type="password",
         placeholder="•••",
-        max_chars=3,  # CVV = exactly 3 characters total max
+        max_chars=3,
     )
 
-# Extract raw cleaned numbers out of inputs for our calculations
 clean_card = re.sub(r"\D", "", raw_card_input).strip() if raw_card_input else ""
 clean_expiry = re.sub(r"\D", "", raw_expiry_input).strip() if raw_expiry_input else ""
 
-# Visual feedback: Show the card type dynamically if it's a number
 if clean_card:
     card_type = get_card_type(clean_card)
     if card_type != "Unknown":
         st.caption(f"Network standard match verified: **{card_type} Card**")
 
-# Hidden System Background Variables
 country = "India"
 failed_attempts = current_streak
 
@@ -135,12 +179,12 @@ st.caption(
     "🔒 Secured Protocol Endpoint • PCI-DSS Banking Vault Architecture Standard Active"
 )
 
+
 # ============================================================
 # 5. TRANSACTION DISPATCH & SECURE INFRASTRUCTURE PROCESSING
 # ============================================================
 if st.button("Complete Secure Payment", type="primary", use_container_width=True):
 
-    # Check field requirements
     if (
         not customer_name.strip()
         or not clean_card
@@ -150,7 +194,6 @@ if st.button("Complete Secure Payment", type="primary", use_container_width=True
         st.error("Validation Error: All processing credential parameters are required.")
         st.stop()
 
-    # --- FINAL BACKEND STANDARDIZED AUTO-FORMATTING FOR LEDGER EXPORT ---
     if len(clean_card) == 16:
         formatted_card = f"{clean_card[0:4]}-{clean_card[4:8]}-{clean_card[8:12]}-{clean_card[12:16]}"
     else:
@@ -178,7 +221,6 @@ if st.button("Complete Secure Payment", type="primary", use_container_width=True
     if len(clean_card) != 16 or not clean_card.isdigit():
         increment_failed_payment_streak(user_email)
         new_streak = current_streak + 1
-
         save_transaction(
             transaction_id,
             customer_name,
@@ -210,7 +252,6 @@ if st.button("Complete Secure Payment", type="primary", use_container_width=True
     if not luhn_check(clean_card):
         increment_failed_payment_streak(user_email)
         new_streak = current_streak + 1
-
         save_transaction(
             transaction_id,
             customer_name,
@@ -264,7 +305,6 @@ if st.button("Complete Secure Payment", type="primary", use_container_width=True
     if prediction == 1 or risk_score >= 80.0:
         increment_failed_payment_streak(user_email)
         new_streak = current_streak + 1
-
         save_transaction(
             transaction_id,
             customer_name,
@@ -290,11 +330,9 @@ if st.button("Complete Secure Payment", type="primary", use_container_width=True
             st.error(
                 f"❌ Transaction Refused: Payment authorization failed. Please contact card issuing bank parameters. ({new_streak}/3 failed attempts)"
             )
-
     else:
-        # Successful execution! Clear user strike count
+        # Successful Execution Pathway
         reset_failed_payment_streak(user_email)
-
         save_transaction(
             transaction_id,
             customer_name,
@@ -310,18 +348,10 @@ if st.button("Complete Secure Payment", type="primary", use_container_width=True
             "Genuine",
         )
 
-        st.success("🎉 Authorization Complete! Processing payment allocation pipeline.")
-
-        with st.expander("🧾 Open Invoice Receipt Summary", expanded=True):
-            st.write(f"**Transaction Settlement ID:** `{transaction_id}`")
-            st.write(
-                f"**Network Endpoint:** Verified {get_card_type(clean_card)} Auth Mode"
-            )
-            st.write(f"**Card Number Saved:** `{formatted_card}`")
-            st.write(f"**Expiry Date Processed:** `{formatted_expiry}`")
-            st.write(f"**Authorized Charge:** ₹{amount:,}")
-            st.write(f"**Status Code:** Settled / Verified")
-
+        # 1. Modify and clear the session state details
         st.session_state.cart = []
         st.session_state.total_amount = 0
-        st.button("Return to Home", on_click=lambda: st.switch_page("pages/home.py"))
+        st.session_state.payment_success = True  # Trigger success validation toggle
+
+        # 2. Re-execute the script layout to drop the form window completely
+        st.rerun()
