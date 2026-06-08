@@ -478,7 +478,7 @@ else:
             st.markdown(
                 """
                 <div style="background:white; padding:35px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
-                    <h1 style="text-align:center; color:#1e293b; font-size:23px; margin-bottom:10px;">🔒 Staff Verification Gate</h1>
+                    <h1 style="text-align:center; color:#1e293b; font-size:23px; margin-bottom:10px;">🔒 Admin Verification Gate</h1>
                 </div>
                 """,
                 unsafe_allow_html=True,
