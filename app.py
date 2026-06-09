@@ -63,7 +63,7 @@ if not st.session_state.logged_in:
     st.markdown(
         """
         <style>
-        section[data-testid="stSidebar"] { display: none; }
+        section[data-testid="stSidebar"] { display: none !important; }
         </style>
         """,
         unsafe_allow_html=True,
@@ -83,7 +83,7 @@ if st.session_state.logged_in and st.session_state.login_time:
         st.stop()
 
 # ============================================================
-# 6. REDESIGNED CSS — Deep Navy + Coral Accent + Soft Cards
+# 6. UNIFORM LIGHT THEME CSS
 # ============================================================
 st.markdown(
     """
@@ -96,7 +96,8 @@ st.markdown(
 *, *::before, *::after { box-sizing: border-box; }
 
 .stApp {
-    background: #0d1117;
+    background: #f6f8fa; /* Modern Soft light background */
+    color: #24292f;      /* Clean Dark text */
     font-family: 'Inter', sans-serif;
 }
 
@@ -107,15 +108,15 @@ st.markdown(
 }
 
 /* ===========================
-   ANIMATED BACKGROUND GRID
+   ANIMATED BACKGROUND GRID (Soft Light Contrast)
 =========================== */
 .stApp::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+        linear-gradient(rgba(9,105,218,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(9,105,218,0.03) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
@@ -130,32 +131,17 @@ st.markdown(
     padding: 56px 40px 48px;
     margin-bottom: 40px;
     border-radius: 24px;
-    background: linear-gradient(135deg, #1a1f2e 0%, #161b2a 100%);
-    border: 1px solid rgba(99,102,241,0.2);
+    background: linear-gradient(135deg, #ffffff 0%, #f1f3f5 100%);
+    border: 1px solid #d0d7de;
     overflow: hidden;
     animation: fadeSlideDown 0.6s ease both;
-}
-.hero-wrap::after {
-    content: '';
-    position: absolute;
-    top: -60px; right: -60px;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%);
-    pointer-events: none;
-}
-.hero-wrap::before {
-    content: '';
-    position: absolute;
-    bottom: -80px; left: -40px;
-    width: 260px; height: 260px;
-    background: radial-gradient(circle, rgba(244,114,74,0.12) 0%, transparent 70%);
-    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 .hero-badge {
     display: inline-block;
-    background: rgba(99,102,241,0.15);
-    border: 1px solid rgba(99,102,241,0.35);
-    color: #a5b4fc;
+    background: rgba(9,105,218,0.1);
+    border: 1px solid rgba(9,105,218,0.25);
+    color: #0969da;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 2px;
@@ -168,20 +154,20 @@ st.markdown(
     font-family: 'Syne', sans-serif;
     font-size: clamp(38px, 6vw, 64px);
     font-weight: 800;
-    color: #f1f5f9;
+    color: #24292f;
     line-height: 1.1;
     margin: 0 0 12px;
     letter-spacing: -1px;
 }
 .hero-title span {
-    background: linear-gradient(90deg, #6366f1, #f4724a);
+    background: linear-gradient(90deg, #0969da, #cf222e);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 .hero-subtitle {
     font-size: 16px;
-    color: #64748b;
+    color: #57606a;
     font-weight: 400;
     max-width: 480px;
     margin: 0 auto;
@@ -195,13 +181,14 @@ st.markdown(
     flex-wrap: wrap;
 }
 .hero-pill {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #94a3b8;
+    background: #ffffff;
+    border: 1px solid #d0d7de;
+    color: #57606a;
     font-size: 13px;
     padding: 6px 14px;
     border-radius: 50px;
     font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 /* ===========================
@@ -211,7 +198,7 @@ st.markdown(
     font-family: 'Syne', sans-serif;
     font-size: 22px;
     font-weight: 700;
-    color: #f1f5f9;
+    color: #24292f;
     margin-bottom: 20px;
     letter-spacing: -0.3px;
 }
@@ -220,64 +207,73 @@ st.markdown(
    LOGIN / SIGNUP CARD
 =========================== */
 .login-card-wrap {
-    background: #161b2a;
-    border: 1px solid rgba(99,102,241,0.18);
+    background: #ffffff;
+    border: 1px solid #d0d7de;
     border-radius: 20px;
     padding: 32px 28px;
     animation: fadeSlideUp 0.5s ease both;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
 }
 
 /* ===========================
    STREAMLIT INPUT OVERRIDES
 =========================== */
 .stTextInput > label {
-    color: #94a3b8 !important;
+    color: #57606a !important;
     font-size: 13px !important;
     font-weight: 500 !important;
-    letter-spacing: 0.3px !important;
 }
 .stTextInput input {
-    background: #0d1117 !important;
-    border: 1px solid rgba(99,102,241,0.25) !important;
+    background: #ffffff !important;
+    border: 1px solid #d0d7de !important;
     border-radius: 12px !important;
-    color: #f1f5f9 !important;
+    color: #24292f !important;
     font-size: 15px !important;
     padding: 12px 16px !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 .stTextInput input:focus {
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
+    border-color: #0969da !important;
+    box-shadow: 0 0 0 3px rgba(9,105,218,0.15) !important;
+}
+
+/* ===========================
+   SIDEBAR LIGHT OVERRIDES
+=========================== */
+[data-testid="stSidebar"] {
+    background-color: #ffffff !important;
+    border-right: 1px solid #d0d7de !important;
+}
+[data-testid="stSidebarNav"] label {
+    color: #24292f !important;
+}
+[data-testid="stSidebarNav"] a span {
+    color: #57606a !important;
+}
+[data-testid="stSidebarNav"] a[aria-current="page"] span {
+    color: #0969da !important;
+    font-weight: bold !important;
 }
 
 /* ===========================
    TABS
 =========================== */
 .stTabs [data-baseweb="tab-list"] {
-    background: rgba(255,255,255,0.03) !important;
+    background: #f6f8fa !important;
     border-radius: 12px !important;
     padding: 4px !important;
     gap: 4px !important;
-    border: 1px solid rgba(255,255,255,0.06) !important;
+    border: 1px solid #d0d7de !important;
 }
 .stTabs [data-baseweb="tab"] {
     border-radius: 9px !important;
     font-size: 14px !important;
     font-weight: 600 !important;
-    color: #64748b !important;
+    color: #57606a !important;
     padding: 8px 18px !important;
-    transition: all 0.2s ease !important;
 }
 .stTabs [aria-selected="true"] {
-    background: #6366f1 !important;
+    background: #0969da !important;
     color: white !important;
-}
-.stTabs [data-baseweb="tab-highlight"] {
-    display: none !important;
-}
-.stTabs [data-baseweb="tab-border"] {
-    display: none !important;
 }
 
 /* ===========================
@@ -287,65 +283,49 @@ st.markdown(
     width: 100% !important;
     height: 48px !important;
     border-radius: 12px !important;
-    border: none !important;
+    border: 1px solid #d0d7de !important;
     font-size: 14px !important;
     font-weight: 600 !important;
-    letter-spacing: 0.3px !important;
-    background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
-    color: white !important;
-    transition: all 0.25s ease !important;
-    position: relative !important;
-    overflow: hidden !important;
-}
-.stButton > button::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
-    opacity: 0;
-    transition: opacity 0.25s ease;
+    background: #ffffff !important;
+    color: #24292f !important;
+    transition: all 0.2s ease !important;
 }
 .stButton > button:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(99,102,241,0.4) !important;
+    transform: translateY(-1px) !important;
+    background-color: #f6f8fa !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
 }
-.stButton > button:hover::after { opacity: 1; }
-.stButton > button:active {
-    transform: translateY(0) scale(0.98) !important;
+
+/* Redesign active triggers/primary action elements */
+.stButton > button[type="primary"] {
+    background: linear-gradient(135deg, #0969da, #054da7) !important;
+    color: white !important;
+    border: none !important;
+}
+.stButton > button[type="primary"]:hover {
+    box-shadow: 0 6px 20px rgba(9,105,218,0.3) !important;
 }
 
 /* ===========================
    FEATURE / INFO CARDS
 =========================== */
 .feat-card {
-    background: #161b2a;
-    border: 1px solid rgba(255,255,255,0.07);
+    background: #ffffff;
+    border: 1px solid #d0d7de;
     border-radius: 16px;
     padding: 24px 20px;
     text-align: center;
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-    animation: fadeSlideUp 0.5s ease both;
-}
-.feat-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(99,102,241,0.35);
-    box-shadow: 0 12px 40px rgba(99,102,241,0.1);
-}
-.feat-icon {
-    font-size: 28px;
-    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 .feat-title {
     font-weight: 700;
     font-size: 14px;
-    color: #f1f5f9;
+    color: #24292f;
     margin-bottom: 6px;
 }
 .feat-desc {
     font-size: 12px;
-    color: #475569;
-    line-height: 1.5;
-    margin: 0;
+    color: #57606a;
 }
 
 /* ===========================
@@ -360,8 +340,8 @@ st.markdown(
 .stat-box {
     flex: 1;
     min-width: 90px;
-    background: rgba(99,102,241,0.08);
-    border: 1px solid rgba(99,102,241,0.18);
+    background: rgba(9,105,218,0.06);
+    border: 1px solid rgba(9,105,218,0.15);
     border-radius: 14px;
     padding: 16px 12px;
     text-align: center;
@@ -370,60 +350,11 @@ st.markdown(
     font-family: 'Syne', sans-serif;
     font-size: 22px;
     font-weight: 800;
-    color: #6366f1;
-    line-height: 1;
+    color: #0969da;
 }
 .stat-label {
     font-size: 11px;
-    color: #64748b;
-    margin-top: 4px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* ===========================
-   OFFER BANNER
-=========================== */
-.offer-banner {
-    background: linear-gradient(135deg, #1e1030, #1a1f2e);
-    border: 1px solid rgba(244,114,74,0.25);
-    border-radius: 16px;
-    padding: 20px 22px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-top: 16px;
-    animation: pulse-border 3s ease infinite;
-}
-@keyframes pulse-border {
-    0%, 100% { border-color: rgba(244,114,74,0.25); }
-    50%       { border-color: rgba(244,114,74,0.55); }
-}
-.offer-tag {
-    background: linear-gradient(135deg, #f4724a, #e85d3a);
-    color: white;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 6px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-.offer-text {
-    color: #cbd5e1;
-    font-size: 13px;
-    line-height: 1.5;
-    margin: 0;
-}
-.offer-text strong { color: #f1f5f9; }
-
-/* ===========================
-   INFO / SUCCESS ALERTS
-=========================== */
-.stInfo, .stSuccess, .stError, .stWarning {
-    border-radius: 12px !important;
+    color: #57606a;
 }
 
 /* ===========================
@@ -439,197 +370,79 @@ st.markdown(
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: #ffffff;
+    border: 1px solid #d0d7de;
     border-radius: 12px;
     padding: 12px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
-.perk-icon { font-size: 18px; }
-.perk-text { font-size: 13px; color: #94a3b8; font-weight: 500; }
-.perk-text strong { color: #f1f5f9; }
-
-/* ===========================
-   STAFF LOGIN BUTTON (top-right)
-=========================== */
-.staff-btn-wrap .stButton > button {
-    background: rgba(255,255,255,0.05) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    color: #94a3b8 !important;
-    height: 38px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-}
-.staff-btn-wrap .stButton > button:hover {
-    background: rgba(99,102,241,0.12) !important;
-    border-color: rgba(99,102,241,0.35) !important;
-    color: #a5b4fc !important;
-    box-shadow: none !important;
-}
+.perk-text { font-size: 13px; color: #57606a; }
+.perk-text strong { color: #24292f; }
 
 /* ===========================
    ADMIN GATE CARD
 =========================== */
 .admin-gate-card {
-    background: #0d1117;
-    border: 1px solid rgba(99,102,241,0.25);
+    background: #ffffff;
+    border: 1px solid #d0d7de;
     border-radius: 20px;
     padding: 36px 32px;
     text-align: center;
-    box-shadow: 0 25px 80px rgba(0,0,0,0.5);
-    animation: fadeSlideUp 0.4s ease both;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
 }
 .admin-gate-title {
     font-family: 'Syne', sans-serif;
     font-size: 18px;
     font-weight: 700;
-    color: #f1f5f9;
-    margin-bottom: 6px;
-}
-.admin-gate-sub {
-    font-size: 12px;
-    color: #475569;
-    margin-bottom: 24px;
-}
-.admin-lock-icon {
-    font-size: 36px;
-    margin-bottom: 12px;
-    display: block;
-    animation: float 3s ease-in-out infinite;
-}
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(-6px); }
+    color: #24292f;
 }
 
 /* ===========================
    ADMIN COMMAND CENTER
 =========================== */
 .admin-hero {
-    background: linear-gradient(135deg, #0d1117 0%, #161b2a 100%);
-    border: 1px solid rgba(99,102,241,0.2);
+    background: linear-gradient(135deg, #ffffff 0%, #f6f8fa 100%);
+    border: 1px solid #d0d7de;
     border-radius: 24px;
     padding: 48px 40px;
     text-align: center;
     margin-bottom: 32px;
-    position: relative;
-    overflow: hidden;
-    animation: fadeSlideDown 0.5s ease both;
-}
-.admin-hero::before {
-    content: '';
-    position: absolute;
-    top: -80px; left: 50%;
-    transform: translateX(-50%);
-    width: 400px; height: 200px;
-    background: radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%);
-    pointer-events: none;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
 }
 .admin-hero-title {
     font-family: 'Syne', sans-serif;
     font-size: clamp(28px, 4vw, 48px);
     font-weight: 800;
-    color: #f1f5f9;
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
-}
-.admin-hero-sub {
-    font-size: 14px;
-    color: #475569;
-    max-width: 460px;
-    margin: 0 auto;
-}
-.admin-status-dot {
-    display: inline-block;
-    width: 8px; height: 8px;
-    background: #22c55e;
-    border-radius: 50%;
-    margin-right: 6px;
-    animation: blink 1.8s ease infinite;
-    vertical-align: middle;
-}
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.3; }
-}
-.admin-section-header {
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: #6366f1;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 16px;
+    color: #24292f;
 }
 
 /* ===========================
    FORGOT PASSWORD PAGE
 =========================== */
 .fp-card {
-    background: #161b2a;
-    border: 1px solid rgba(99,102,241,0.2);
+    background: #ffffff;
+    border: 1px solid #d0d7de;
     border-radius: 20px;
     padding: 36px 32px;
-    animation: fadeSlideUp 0.4s ease both;
-    max-width: 480px;
-    margin: 0 auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
 }
 .fp-title {
     font-family: 'Syne', sans-serif;
     font-size: 22px;
     font-weight: 700;
-    color: #f1f5f9;
-    margin-bottom: 6px;
-}
-.fp-sub {
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 24px;
-}
-
-/* ===========================
-   DIVIDER OVERRIDE
-=========================== */
-hr {
-    border-color: rgba(255,255,255,0.06) !important;
-    margin: 28px 0 !important;
-}
-
-/* ===========================
-   FOOTER
-=========================== */
-.stApp footer, .stCaption {
-    color: #334155 !important;
-}
-
-/* ===========================
-   KEYFRAMES
-=========================== */
-@keyframes fadeSlideDown {
-    from { opacity: 0; transform: translateY(-18px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
+    color: #24292f;
 }
 
 /* Metric overrides */
 [data-testid="stMetric"] {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: #ffffff;
+    border: 1px solid #d0d7de;
     border-radius: 12px;
     padding: 14px 16px;
 }
 [data-testid="stMetricValue"] {
-    color: #6366f1 !important;
-    font-family: 'Syne', sans-serif !important;
-    font-size: 22px !important;
+    color: #0969da !important;
 }
-[data-testid="stMetricLabel"] {
-    color: #64748b !important;
-    font-size: 12px !important;
-}
-
 </style>
 """,
     unsafe_allow_html=True,
@@ -772,7 +585,8 @@ else:
                 admin_password = st.text_input(
                     "Admin Password", type="password", key="admin_pass_input"
                 )
-                submit_admin = st.st.form_submit_button(
+                # FIX: Fixed the typo 'st.st.form_submit_button' down to 'st.form_submit_button'
+                submit_admin = st.form_submit_button(
                     "🚀 Authenticate", use_container_width=True
                 )
 
@@ -898,7 +712,6 @@ else:
                 st.rerun()
 
         with signup_tab:
-            # FIX: Form container added to tie state updates cleanly to the button context
             with st.form("signup_form", clear_on_submit=False):
                 name = st.text_input("Full Name", key="signup_name")
                 signup_email = st.text_input("Email Address", key="signup_email")
@@ -939,13 +752,13 @@ else:
         st.markdown(
             """
             <h1 style='font-family:"Syne",sans-serif;font-size:clamp(28px,3.5vw,44px);
-                        font-weight:800;color:#f1f5f9;line-height:1.15;
+                        font-weight:800;color:#24292f;line-height:1.15;
                         letter-spacing:-0.5px;margin-bottom:6px;'>
-                Welcome to<br><span style='background:linear-gradient(90deg,#6366f1,#f4724a);
+                Welcome to<br><span style='background:linear-gradient(90deg,#0969da,#cf222e);
                 -webkit-background-clip:text;-webkit-text-fill-color:transparent;
                 background-clip:text;'>ShopZone</span>
             </h1>
-            <p style='color:#475569;font-size:14px;margin-bottom:20px;'>
+            <p style='color:#57606a;font-size:14px;margin-bottom:20px;'>
                 Your premium one-stop marketplace — from daily essentials to the latest tech.
             </p>
         """,
@@ -977,7 +790,7 @@ else:
             unsafe_allow_html=True,
         )
 
-        # Perks (CSS structural classes fixed to fit layout wrappers)
+        # Perks
         st.markdown(
             """
             <div class="perks-grid">
