@@ -8,7 +8,12 @@ from database.db import init_db
 init_db()
 
 # Safe to import auth modules
-from database.auth import register_user, login_user, get_failed_payment_streak
+from database.auth import (
+    register_user,
+    login_user,
+    get_failed_payment_streak,
+    reset_password,
+)
 
 # ============================================================
 # 2. PAGE CONFIGURATION
@@ -47,6 +52,9 @@ if "username" not in st.session_state:
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
 
+if "show_forgot_password" not in st.session_state:
+    st.session_state.show_forgot_password = False
+
 # ============================================================
 # 4. HIDE SIDEBAR BEFORE LOGIN
 # ============================================================
@@ -74,327 +82,572 @@ if st.session_state.logged_in and st.session_state.login_time:
         st.stop()
 
 # ============================================================
-# 6. CUSTOM CSS FOR THE DYNAMIC LOOK
+# 6. REDESIGNED CSS — Deep Navy + Coral Accent + Soft Cards
 # ============================================================
 st.markdown(
     """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap');
 
 /* ===========================
-PAGE BACKGROUND
+   GLOBAL RESET & BASE
 =========================== */
+*, *::before, *::after { box-sizing: border-box; }
 
-.stApp{
-    background: linear-gradient(
-        135deg,
-        #eef4ff,
-        #f8fbff
-    );
+.stApp {
+    background: #0d1117;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Remove default streamlit padding */
+.block-container {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
 }
 
 /* ===========================
-TOP HERO BANNER
+   ANIMATED BACKGROUND GRID
 =========================== */
+.stApp::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+}
 
-.store-banner {
-    background: linear-gradient(
-        135deg,
-        #4f46e5,
-        #2563eb
-    );
-
-    /* 1. Reduced internal padding to shrink the height */
-    padding: 20px 38px; 
-
-    /* 2. Optional: Limits how wide the banner stretches across the screen */
-    max-width: 600px;   
-    
-    /* 3. Centers the card horizontally and keeps the 35px bottom spacing */
-    margin: 0 auto 35px auto; 
-
-    border-radius: 20px;
+/* ===========================
+   HERO BANNER
+=========================== */
+.hero-wrap {
+    position: relative;
     text-align: center;
+    padding: 56px 40px 48px;
+    margin-bottom: 40px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #1a1f2e 0%, #161b2a 100%);
+    border: 1px solid rgba(99,102,241,0.2);
+    overflow: hidden;
+    animation: fadeSlideDown 0.6s ease both;
+}
+.hero-wrap::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.hero-wrap::before {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -40px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(244,114,74,0.12) 0%, transparent 70%);
+    pointer-events: none;
+}
+.hero-badge {
+    display: inline-block;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.35);
+    color: #a5b4fc;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 50px;
+    margin-bottom: 18px;
+}
+.hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(38px, 6vw, 64px);
+    font-weight: 800;
+    color: #f1f5f9;
+    line-height: 1.1;
+    margin: 0 0 12px;
+    letter-spacing: -1px;
+}
+.hero-title span {
+    background: linear-gradient(90deg, #6366f1, #f4724a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.hero-subtitle {
+    font-size: 16px;
+    color: #64748b;
+    font-weight: 400;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+.hero-pills {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+.hero-pill {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #94a3b8;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-weight: 500;
+}
+
+/* ===========================
+   SECTION HEADER
+=========================== */
+.section-header {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 20px;
+    letter-spacing: -0.3px;
+}
+
+/* ===========================
+   LOGIN / SIGNUP CARD
+=========================== */
+.login-card-wrap {
+    background: #161b2a;
+    border: 1px solid rgba(99,102,241,0.18);
+    border-radius: 20px;
+    padding: 32px 28px;
+    animation: fadeSlideUp 0.5s ease both;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+/* ===========================
+   STREAMLIT INPUT OVERRIDES
+=========================== */
+.stTextInput > label {
+    color: #94a3b8 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.3px !important;
+}
+.stTextInput input {
+    background: #0d1117 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+    border-radius: 12px !important;
+    color: #f1f5f9 !important;
+    font-size: 15px !important;
+    padding: 12px 16px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.stTextInput input:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
+}
+
+/* ===========================
+   TABS
+=========================== */
+.stTabs [data-baseweb="tab-list"] {
+    background: rgba(255,255,255,0.03) !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 9px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    padding: 8px 18px !important;
+    transition: all 0.2s ease !important;
+}
+.stTabs [aria-selected="true"] {
+    background: #6366f1 !important;
+    color: white !important;
+}
+.stTabs [data-baseweb="tab-highlight"] {
+    display: none !important;
+}
+.stTabs [data-baseweb="tab-border"] {
+    display: none !important;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+.stButton > button {
+    width: 100% !important;
+    height: 48px !important;
+    border-radius: 12px !important;
+    border: none !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+    color: white !important;
+    transition: all 0.25s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+.stButton > button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.4) !important;
+}
+.stButton > button:hover::after { opacity: 1; }
+.stButton > button:active {
+    transform: translateY(0) scale(0.98) !important;
+}
+
+/* ===========================
+   FEATURE / INFO CARDS
+=========================== */
+.feat-card {
+    background: #161b2a;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    animation: fadeSlideUp 0.5s ease both;
+}
+.feat-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(99,102,241,0.35);
+    box-shadow: 0 12px 40px rgba(99,102,241,0.1);
+}
+.feat-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+.feat-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #f1f5f9;
+    margin-bottom: 6px;
+}
+.feat-desc {
+    font-size: 12px;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ===========================
+   STATS ROW
+=========================== */
+.stats-row {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+.stat-box {
+    flex: 1;
+    min-width: 90px;
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.18);
+    border-radius: 14px;
+    padding: 16px 12px;
+    text-align: center;
+}
+.stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #6366f1;
+    line-height: 1;
+}
+.stat-label {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===========================
+   OFFER BANNER
+=========================== */
+.offer-banner {
+    background: linear-gradient(135deg, #1e1030, #1a1f2e);
+    border: 1px solid rgba(244,114,74,0.25);
+    border-radius: 16px;
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+    animation: pulse-border 3s ease infinite;
+}
+@keyframes pulse-border {
+    0%, 100% { border-color: rgba(244,114,74,0.25); }
+    50%       { border-color: rgba(244,114,74,0.55); }
+}
+.offer-tag {
+    background: linear-gradient(135deg, #f4724a, #e85d3a);
     color: white;
-    
-    box-shadow: 0 15px 40px rgba(79, 70, 229, .25);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
-.hero-title{
-    font-size:65px;
-    font-weight:600;
-    color:white;
+.offer-text {
+    color: #cbd5e1;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0;
 }
+.offer-text strong { color: #f1f5f9; }
 
-.hero-subtitle{
-    font-size:20px;
-    color:#e2e8f0;
+/* ===========================
+   INFO / SUCCESS ALERTS
+=========================== */
+.stInfo, .stSuccess, .stError, .stWarning {
+    border-radius: 12px !important;
 }
 
 /* ===========================
-SECTION TITLE
+   DELIVERY PERKS BLOCK
 =========================== */
+.perks-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0;
+}
+.perk-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+.perk-icon { font-size: 18px; }
+.perk-text { font-size: 13px; color: #94a3b8; font-weight: 500; }
+.perk-text strong { color: #f1f5f9; }
 
-.section-header{
-    font-size:34px;
-    font-weight:800;
-    color:#1e293b;
-    margin-bottom:20px;
+/* ===========================
+   STAFF LOGIN BUTTON (top-right)
+=========================== */
+.staff-btn-wrap .stButton > button {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: #94a3b8 !important;
+    height: 38px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+.staff-btn-wrap .stButton > button:hover {
+    background: rgba(99,102,241,0.12) !important;
+    border-color: rgba(99,102,241,0.35) !important;
+    color: #a5b4fc !important;
+    box-shadow: none !important;
 }
 
 /* ===========================
-LOGIN CARD
+   ADMIN GATE CARD
 =========================== */
-
-[data-testid="stVerticalBlock"] div:has(> .stTabs){
-
-    background:rgba(255,255,255,.85);
-
-    backdrop-filter:blur(15px);
-
-    border-radius:25px;
-
-    padding:30px;
-
-    box-shadow:
-    0 10px 35px rgba(0,0,0,.08);
-
-    border:1px solid rgba(255,255,255,.6);
+.admin-gate-card {
+    background: #0d1117;
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 20px;
+    padding: 36px 32px;
+    text-align: center;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+    animation: fadeSlideUp 0.4s ease both;
+}
+.admin-gate-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 6px;
+}
+.admin-gate-sub {
+    font-size: 12px;
+    color: #475569;
+    margin-bottom: 24px;
+}
+.admin-lock-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-6px); }
 }
 
 /* ===========================
-INPUT BOXES
+   ADMIN COMMAND CENTER
 =========================== */
-
-.stTextInput input{
-
-    border-radius:15px !important;
-
-    border:2px solid #dbe4ff !important;
-
-    padding:14px !important;
-
-    background:white !important;
-
-    font-size:16px !important;
+.admin-hero {
+    background: linear-gradient(135deg, #0d1117 0%, #161b2a 100%);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 24px;
+    padding: 48px 40px;
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeSlideDown 0.5s ease both;
 }
-
-.stTextInput input:focus{
-
-    border:2px solid #4f46e5 !important;
+.admin-hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%;
+    transform: translateX(-50%);
+    width: 400px; height: 200px;
+    background: radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%);
+    pointer-events: none;
+}
+.admin-hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 800;
+    color: #f1f5f9;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+.admin-hero-sub {
+    font-size: 14px;
+    color: #475569;
+    max-width: 460px;
+    margin: 0 auto;
+}
+.admin-status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: blink 1.8s ease infinite;
+    vertical-align: middle;
+}
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+.admin-section-header {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
 }
 
 /* ===========================
-BUTTONS
+   FORGOT PASSWORD PAGE
 =========================== */
-
-.stButton button{
-
-    width:100%;
-
-    height:55px;
-
-    border-radius:15px !important;
-
-    border:none !important;
-
-    font-size:16px;
-
-    font-weight:700;
-
-    transition:.3s;
+.fp-card {
+    background: #161b2a;
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 20px;
+    padding: 36px 32px;
+    animation: fadeSlideUp 0.4s ease both;
+    max-width: 480px;
+    margin: 0 auto;
 }
-
-/* Login Button */
-
-.stButton button[kind="primary"]{
-
-    background:
-    linear-gradient(
-        90deg,
-        #4f46e5,
-        #2563eb
-    ) !important;
-
-    color:white !important;
+.fp-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 6px;
 }
-
-/* Hover */
-
-.stButton button:hover{
-
-    transform:translateY(-2px);
-
-    box-shadow:
-    0 10px 25px rgba(79,70,229,.35);
+.fp-sub {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 24px;
 }
 
 /* ===========================
-FEATURE CARD
+   DIVIDER OVERRIDE
 =========================== */
-
-.feature-card{
-
-    background:white;
-
-    border-radius:20px;
-
-    padding:25px;
-
-    text-align:center;
-
-    box-shadow:
-    0 6px 25px rgba(0,0,0,.06);
-
-    margin-bottom:15px;
-
-    transition:.3s;
-}
-
-.feature-card:hover{
-
-    transform:translateY(-6px);
+hr {
+    border-color: rgba(255,255,255,0.06) !important;
+    margin: 28px 0 !important;
 }
 
 /* ===========================
-TABS
+   FOOTER
 =========================== */
-
-.stTabs [data-baseweb="tab"]{
-
-    font-size:17px;
-    font-weight:700;
+.stApp footer, .stCaption {
+    color: #334155 !important;
 }
 
 /* ===========================
-SUCCESS
+   KEYFRAMES
 =========================== */
-
-.stSuccess{
-
-    border-radius:15px;
+@keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ===========================
-INFO
-=========================== */
-
-.stInfo{
-
-    border-radius:15px;
+/* Metric overrides */
+[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 14px 16px;
 }
-
-/* ===========================
-ADMIN BANNER
-=========================== */
-
-.admin-banner{
-
-    background:
-    linear-gradient(
-        135deg,
-        #0f172a,
-        #1e293b
-    );
-
-    padding:40px;
-
-    border-radius:25px;
-
-    color:white;
-
-    text-align:center;
-
-    margin-bottom:30px;
+[data-testid="stMetricValue"] {
+    color: #6366f1 !important;
+    font-family: 'Syne', sans-serif !important;
+    font-size: 22px !important;
 }
-
-.admin-section-header{
-
-    font-size:28px;
-
-    font-weight:800;
-
-    color:#06b6d4;
-
-    margin-bottom:20px;
+[data-testid="stMetricLabel"] {
+    color: #64748b !important;
+    font-size: 12px !important;
 }
 
 </style>
 """,
     unsafe_allow_html=True,
 )
-st.markdown(
-    """
-<style>
 
-/* ALL BUTTONS */
-.stButton > button{
-    width:100%;
-    height:58px;
-    border:none;
-    border-radius:16px;
-    color:white !important;
-    font-size:16px;
-    font-weight:700;
-    background:linear-gradient(
-        135deg,
-        #4f46e5,
-        #2563eb
-    ) !important;
-
-    position:relative;
-    overflow:hidden;
-    transition:all .4s ease;
-}
-
-/* SHINE EFFECT */
-.stButton > button::after{
-    content:"";
-    position:absolute;
-    top:0;
-    left:-120%;
-    width:60%;
-    height:100%;
-
-    background:linear-gradient(
-        90deg,
-        transparent,
-        rgba(255,255,255,.35),
-        transparent
-    );
-
-    transform:skewX(-25deg);
-}
-
-/* HOVER ANIMATION */
-.stButton > button:hover::after{
-    left:150%;
-    transition:.8s;
-}
-
-.stButton > button:hover{
-    transform:translateY(-4px);
-    box-shadow:
-    0 12px 25px rgba(79,70,229,.35);
-}
-
-/* CLICK EFFECT */
-.stButton > button:active{
-    transform:scale(.98);
-}
-
-</style>
-""",
-    unsafe_allow_html=True,
-)
 # ============================================================
-# 7. CASE A: ADMIN IS LOGGED IN (Show the Secret Security Dashboard)
+# 7. CASE A: ADMIN IS LOGGED IN (FraudGuard Command Center)
 # ============================================================
 if st.session_state.logged_in and st.session_state.is_admin:
 
     st.markdown(
         """
-        <div class="admin-banner">
-            <div class="hero-title">FraudGuard Command Center 🛡️</div>
-            <div class="hero-subtitle">Real-Time Transaction Integrity & Machine Learning Guardrails Active</div>
+        <div class="admin-hero">
+            <div style="margin-bottom:12px;">
+                <span class="admin-status-dot"></span>
+                <span style="font-size:12px;color:#22c55e;font-weight:600;letter-spacing:1px;">ALL SYSTEMS OPERATIONAL</span>
+            </div>
+            <div class="admin-hero-title">FraudGuard Command Center 🛡️</div>
+            <div class="admin-hero-sub">Real-Time Transaction Integrity &amp; Machine Learning Guardrails Active</div>
         </div>
     """,
         unsafe_allow_html=True,
@@ -426,61 +679,88 @@ if st.session_state.logged_in and st.session_state.is_admin:
     st.divider()
 
     st.markdown(
-        '<div class="admin-section-header">Innovative Engine Pipeline Overview</div>',
+        '<div class="admin-section-header">Engine Pipeline Overview</div>',
         unsafe_allow_html=True,
     )
     f1, f2, f3 = st.columns(3)
     with f1:
         st.markdown(
-            '<div class="feature-card"><strong>🛡️ Risk Isolation</strong><p style="font-size:13px; color:#6c757d; margin-top:5px;">Evaluates location data dynamically on checkout.</p></div>',
+            """
+            <div class="feat-card">
+                <div class="feat-icon">🛡️</div>
+                <div class="feat-title">Risk Isolation</div>
+                <p class="feat-desc">Evaluates location &amp; device data dynamically on every checkout event.</p>
+            </div>""",
             unsafe_allow_html=True,
         )
     with f2:
         st.markdown(
-            '<div class="feature-card"><strong>🤖 ML Inference</strong><p style="font-size:13px; color:#6c757d; margin-top:5px;">Engineered using scikit-learn model classifying fraud patterns.</p></div>',
+            """
+            <div class="feat-card">
+                <div class="feat-icon">🤖</div>
+                <div class="feat-title">ML Inference</div>
+                <p class="feat-desc">Scikit-learn classifier scores fraud probability on each transaction in real time.</p>
+            </div>""",
             unsafe_allow_html=True,
         )
     with f3:
         st.markdown(
-            '<div class="feature-card"><strong>📊 Audit Logger</strong><p style="font-size:13px; color:#6c757d; margin-top:5px;"> checkout streams directly into encrypted SQLite system ledger.</p></div>',
+            """
+            <div class="feat-card">
+                <div class="feat-icon">📊</div>
+                <div class="feat-title">Audit Logger</div>
+                <p class="feat-desc">Every checkout stream is written directly to the encrypted SQLite ledger.</p>
+            </div>""",
             unsafe_allow_html=True,
         )
 
 # ============================================================
-# 8. CASE B: NORMAL USER OR NOT LOGGED IN (Show Standard Clean Store UI)
+# 8. CASE B: NORMAL USER OR NOT LOGGED IN
 # ============================================================
 else:
-    # Standard Customer Storefront Header Banner
+    # ── Hero Banner ──────────────────────────────────────────
     st.markdown(
         """
-        <div class="store-banner">
-            <div class="hero-title">ShopZone 🛍️</div>
-            <div class="hero-subtitle">Premium Goods • Fast Delivery • Frictionless Checkout Experience</div>
+        <div class="hero-wrap">
+            <div class="hero-badge">✦ Premium Marketplace</div>
+            <div class="hero-title">Shop<span>Zone</span> 🛍️</div>
+            <div class="hero-subtitle">Thousands of products. Fast delivery. A checkout that just works.</div>
+            <div class="hero-pills">
+                <span class="hero-pill">✔ Electronics</span>
+                <span class="hero-pill">✔ Fashion</span>
+                <span class="hero-pill">✔ Home Decor</span>
+                <span class="hero-pill">✔ Books</span>
+                <span class="hero-pill">✔ Accessories</span>
+            </div>
         </div>
     """,
         unsafe_allow_html=True,
     )
 
-    # Only show the staff login option if not inside the verification panel
+    # ── Staff Login (top-right ghost button) ─────────────────
     if not st.session_state.admin_login:
-        top_left, top_right = st.columns([8, 2])
+        top_left, top_right = st.columns([9, 1])
         with top_right:
-            if st.button("🔒 Staff Login", use_container_width=True):
+            st.markdown('<div class="staff-btn-wrap">', unsafe_allow_html=True)
+            if st.button("🔒 Staff", use_container_width=True):
                 st.session_state.admin_login = True
                 st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
 
-    # Secret Admin Verification Gate Form
+    # ── Admin Verification Gate ───────────────────────────────
     if not st.session_state.logged_in and st.session_state.admin_login:
         st.markdown("<br>", unsafe_allow_html=True)
-        left, center, right = st.columns([2, 1.5, 2])
+        left, center, right = st.columns([2, 1.4, 2])
 
         with center:
             st.markdown(
                 """
-                <div style="background:white; padding:35px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
-                    <h1 style="text-align:center; color:#1e293b; font-size:23px; margin-bottom:10px;">🔒 Admin Verification Gate</h1>
+                <div class="admin-gate-card">
+                    <span class="admin-lock-icon">🔐</span>
+                    <div class="admin-gate-title">Admin Verification Gate</div>
+                    <div class="admin-gate-sub">Authorised personnel only</div>
                 </div>
-                """,
+            """,
                 unsafe_allow_html=True,
             )
             st.write("")
@@ -503,37 +783,87 @@ else:
                         st.session_state.username = "Administrator"
                         st.session_state.user_email = "adminhere@gmail.com"
                         st.session_state.login_time = datetime.now()
-                        st.success("Welcome back Administrator")
+                        st.success("Welcome back, Administrator ✓")
                         st.rerun()
                     else:
-                        st.error("Invalid Administrative Credentials")
+                        st.error("Invalid administrative credentials.")
             with c2:
                 if st.button("⬅ Back", use_container_width=True):
                     st.session_state.admin_login = False
                     st.rerun()
+
+        # Stop rendering the rest of the page while gate is open
         st.stop()
 
-    # CRITICAL CHANGE: This block is now strictly nested within the 'else' statement
-    # to guarantee it drops off completely when an admin logs in.
-    col_login, col_info = st.columns([1.2, 1.8], gap="large")
+    # ── Forgot Password ───────────────────────────────────────
+    if st.session_state.show_forgot_password:
+        st.markdown("<br>", unsafe_allow_html=True)
+        _, center, _ = st.columns([1, 2, 1])
+        with center:
+            st.markdown(
+                """
+                <div class="fp-card">
+                    <div class="fp-title">🔑 Reset Password</div>
+                    <div class="fp-sub">Enter your registered email and choose a new password.</div>
+                </div>
+            """,
+                unsafe_allow_html=True,
+            )
+            st.write("")
+            email = st.text_input("Registered Email")
+            new_password = st.text_input("New Password", type="password")
+            confirm_password = st.text_input("Confirm Password", type="password")
 
-    # LEFT SIDE → LOGIN / SIGNUP
+            if st.button("Reset Password", use_container_width=True, type="primary"):
+                if not email or not new_password or not confirm_password:
+                    st.error("Please fill all fields.")
+                elif new_password != confirm_password:
+                    st.error("Passwords do not match.")
+                elif len(new_password) < 6:
+                    st.error("Password must be at least 6 characters.")
+                else:
+                    success = reset_password(email, new_password)
+                    if success:
+                        st.success(
+                            "✅ Password reset successfully! You can now log in."
+                        )
+                    else:
+                        st.error("❌ No account found with that email.")
+
+            st.write("")
+            if st.button("⬅ Back to Login", use_container_width=True):
+                st.session_state.show_forgot_password = False
+                st.rerun()
+
+        st.stop()
+
+    # ── Main Login + Info Layout ──────────────────────────────
+    # CRITICAL CHANGE: strictly nested within the 'else' block so
+    # it disappears completely when admin is logged in.
+    col_login, col_info = st.columns([1.1, 1.9], gap="large")
+
+    # LEFT — Login / Signup card
     with col_login:
         st.markdown(
             '<div class="section-header">Customer Access</div>', unsafe_allow_html=True
         )
-        login_tab, signup_tab = st.tabs(["🔒 Secure Login", "📝 New Account"])
+        st.markdown('<div class="login-card-wrap">', unsafe_allow_html=True)
+
+        login_tab, signup_tab = st.tabs(["🔒 Sign In", "✨ Create Account"])
 
         with login_tab:
-            email = st.text_input("Email", key="login_email")
+            email = st.text_input("Email address", key="login_email")
             password = st.text_input("Password", type="password", key="login_password")
-            if st.button("🚀 Login to Shop", use_container_width=True, type="primary"):
+
+            if st.button(
+                "Login to ShopZone →", use_container_width=True, type="primary"
+            ):
                 if not email.strip() or not password.strip():
                     st.error("Please fill out all fields.")
                 else:
                     user_email_clean = email.strip()
                     if get_failed_payment_streak(user_email_clean) >= 3:
-                        st.error("🚨 Account temporarily suspended. Try again later.")
+                        st.error("🚨 Account temporarily suspended. Contact support.")
                     else:
                         user = login_user(user_email_clean, password.strip())
                         if user:
@@ -544,18 +874,24 @@ else:
                                 0
                             ].capitalize()
                             st.session_state.login_time = datetime.now()
-                            st.success("Login Successful!")
+                            st.success("Login successful!")
                             st.switch_page("pages/products.py")
                         else:
-                            st.error("Invalid email or password.")
+                            st.error("Incorrect email or password.")
+
+            st.write("")
+            if st.button("Forgot password?", use_container_width=True):
+                st.session_state.show_forgot_password = True
+                st.rerun()
 
         with signup_tab:
             name = st.text_input("Full Name", key="signup_name")
-            signup_email = st.text_input("Email Address", key="signup_email")
+            signup_email = st.text_input("Email Address", key="signp_email")
             signup_password = st.text_input(
-                "Password", type="password", key="signup_password"
+                "Password (min 6 chars)", type="password", key="signup_password"
             )
-            if st.button("✨ Create Account", use_container_width=True):
+
+            if st.button("Create My Account →", use_container_width=True):
                 if (
                     not name.strip()
                     or not signup_email.strip()
@@ -569,31 +905,84 @@ else:
                         name.strip(), signup_email.strip(), signup_password.strip()
                     )
                     if success:
-                        st.success("Registration Successful!")
+                        st.success("🎉 Account created! Switch to Sign In to log in.")
                     else:
-                        st.error("Email already exists.")
+                        st.error("An account with that email already exists.")
 
-    # RIGHT SIDE → SHOP INFO
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # RIGHT — Shop info
     with col_info:
         st.markdown(
-            "<h1 style='font-size:48px; font-weight:800; color:#1e3a8a;'>Welcome to ShopZone 🛍️</h1>",
+            """
+            <h1 style='font-family:"Syne",sans-serif;font-size:clamp(28px,3.5vw,44px);
+                        font-weight:800;color:#f1f5f9;line-height:1.15;
+                        letter-spacing:-0.5px;margin-bottom:6px;'>
+                Welcome to<br><span style='background:linear-gradient(90deg,#6366f1,#f4724a);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                background-clip:text;'>ShopZone</span>
+            </h1>
+            <p style='color:#475569;font-size:14px;margin-bottom:20px;'>
+                Your premium one-stop marketplace — from daily essentials to the latest tech.
+            </p>
+        """,
             unsafe_allow_html=True,
         )
+
+        # Stats
         st.markdown(
-            "### Premium Shopping Experience\n\nDiscover thousands of products from:\n\n✔ Electronics ✔ Fashion  ✔ Home Decor \n\n✔ Lifestyle Products  ✔ Books  ✔ Accessories"
-        )
-        st.info(
-            "🚚 Free Delivery Above ₹999\n\n⚡ Fast Checkout Experience\n\n📦 24x7 Customer Support"
+            """
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-num">1K+</div>
+                    <div class="stat-label">Products</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">5K+</div>
+                    <div class="stat-label">Customers</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">3.5K</div>
+                    <div class="stat-label">Orders</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">4.8★</div>
+                    <div class="stat-label">Rating</div>
+                </div>
+            </div>
+        """,
+            unsafe_allow_html=True,
         )
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Products", "1000+")
-        c2.metric("Customers", "5000+")
-        c3.metric("Orders", "3500+")
-
-        st.write("")
+        # Perks
         st.markdown(
-            '<div class="feature-card"><h3>🎉 Today\'s Offer</h3><p>Flat 20% OFF on Electronics<br>+ Free Delivery Across India</p></div>',
+            """
+            <div class="perks-grid">
+                <div class="perk-row">
+                    <span class="perk-icon">🚚</span>
+                    <span class="perk-text"><strong>Free delivery</strong> on orders above ₹999</span>
+                </div>
+                <div class="perk-row">
+                    <span class="perk-icon">⚡</span>
+                    <span class="perk-text"><strong>Express checkout</strong> — pay in under 30 seconds</span>
+                </div>
+                <div class="perk-row">
+                    <span class="perk-icon">📦</span>
+                    <span class="perk-text"><strong>24×7 support</strong> for every order, every day</span>
+                </div>
+            </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        # Offer banner
+        st.markdown(
+            """
+            <div class="offer-banner">
+                <span class="offer-tag">🎉 Today</span>
+                <p class="offer-text"><strong>Flat 20% OFF on all Electronics</strong> + free delivery across India. Limited time.</p>
+            </div>
+        """,
             unsafe_allow_html=True,
         )
 

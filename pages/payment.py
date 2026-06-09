@@ -37,6 +37,42 @@ if current_streak >= 3:
 
 
 # ============================================================
+# UI INJECTION: COHESIVE DARK NAVY UI THEME
+# ============================================================
+st.set_page_config(
+    page_title="Secure Bank Payment Gateway", page_icon="💳", layout="centered"
+)
+
+st.markdown(
+    """
+    <style>
+    .main { background-color: #0B1120; color: #F3F4F6; }
+    .payment-card {
+        background-color: #1E293B; border: 1px solid #334155; border-radius: 12px;
+        padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); margin-bottom: 1.5rem;
+    }
+    .success-container {
+        text-align: center; background-color: #1E293B; border: 1px solid #10B981;
+        border-radius: 12px; padding: 3rem; margin-top: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4);
+    }
+    .stButton>button[kind="primary"] {
+        background-color: #10B981; color: white; border: none; font-size: 1.1rem;
+        border-radius: 8px; padding: 0.75rem 1rem; width: 100%; font-weight: bold;
+    }
+    .stButton>button[kind="primary"]:hover { background-color: #059669; }
+    .stButton>button[kind="secondary"] {
+        background-color: #1E293B; color: #F3F4F6; border: 1px solid #334155;
+        border-radius: 8px; padding: 0.5rem 1rem; width: 100%; transition: all 0.3s;
+    }
+    .stButton>button[kind="secondary"]:hover { background-color: #38BDF8; color: #0B1120; border-color: #38BDF8; }
+    </style>
+""",
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
 # 2. CORE SECURITY LOGICAL ALGORITHMS
 # ============================================================
 def luhn_check(card_number):
@@ -85,20 +121,13 @@ model, encoder = load_ml_pipeline()
 # If the payment has already completed, display ONLY the success screen.
 # ============================================================
 if st.session_state.payment_success:
-    st.success("🎉 Payment Successful!")
-
     st.markdown(
         """
-        <div style="
-            text-align:center;
-            padding:30px;
-            border-radius:15px;
-            background:#f0fff4;
-            border:2px solid #38a169;
-        ">
-            <h1>✅ Thank You For Shopping With ShopZone</h1>
-            <h3>Your Order Has Been Placed Successfully</h3>
-            <p>We appreciate your purchase.</p>
+        <div class="success-container">
+            <h1 style="color: #10B981; font-size: 3.5rem; margin-bottom: 1rem;">🎉 Success!</h1>
+            <h2 style="color: #F3F4F6;">✅ Thank You For Shopping With ShopZone</h2>
+            <h4 style="color: #9CA3AF; margin-bottom: 1.5rem;">Your Order Has Been Placed Successfully</h4>
+            <p style="color: #6B7280;">We appreciate your purchase.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -113,7 +142,7 @@ if st.session_state.payment_success:
             st.switch_page("pages/products.py")
 
     with col2:
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("🚪 Logout", use_container_width=True, type="secondary"):
             st.session_state.logged_in = False
             st.session_state.is_admin = False
             st.session_state.admin_login = False
@@ -137,6 +166,9 @@ if amount == 0:
     st.stop()
 else:
     st.subheader(f"Total Amount Payable: ₹{amount:,}")
+
+# Contain fields nicely inside themed dashboard card
+st.markdown('<div class="payment-card">', unsafe_allow_html=True)
 
 customer_name = st.text_input("Card Holder Name")
 
@@ -174,11 +206,12 @@ if clean_card:
 country = "India"
 failed_attempts = current_streak
 
-st.markdown("---")
+st.markdown("</div>", unsafe_allow_html=True)
+
 st.caption(
     "🔒 Secured Protocol Endpoint • PCI-DSS Banking Vault Architecture Standard Active"
 )
-
+st.markdown("---")
 
 # ============================================================
 # 5. TRANSACTION DISPATCH & SECURE INFRASTRUCTURE PROCESSING
@@ -244,7 +277,7 @@ if st.button("Complete Secure Payment", type="primary", use_container_width=True
             st.rerun()
         else:
             st.error(
-                f"❌ Payment Declined: Invalid card layout metrics. ({new_streak}/3 failed attempts)"
+                "❌ Payment Declined: Invalid card layout metrics. ({new_streak}/3 failed attempts)"
             )
         st.stop()
 

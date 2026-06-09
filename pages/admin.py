@@ -2,7 +2,14 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import plotly.express as px
-import os
+
+# ============================================================
+# FIX: Import DB_PATH from db.py — the single source of truth.
+# Previously admin.py built its own path with os.path which
+# differed from the relative path in db.py, causing admin to
+# connect to a different (empty) database file entirely.
+# ============================================================
+from database.db import DB_PATH, init_db
 
 st.set_page_config(page_title="Admin Dashboard", layout="wide")
 
@@ -14,11 +21,8 @@ if not st.session_state.get("is_admin", False):
 
 st.title("📊 Fraud Detection Admin Dashboard")
 
-# Database Connection
-DB_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "database", "fraud.db"
-)
-
+# Database Connection — now uses the same absolute DB_PATH as the rest of the app
+init_db()
 conn = sqlite3.connect(DB_PATH)
 
 df = pd.read_sql_query("SELECT * FROM transactions", conn)
@@ -156,6 +160,8 @@ else:
 # ============================================================
 st.divider()
 st.subheader("📦 Production Database Systems Maintenance")
+
+import os
 
 if os.path.exists(DB_PATH):
     with open(DB_PATH, "rb") as db_file:
