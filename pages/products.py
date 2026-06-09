@@ -1,5 +1,68 @@
 import streamlit as st
 
+st.markdown(
+    """
+    <style>
+    /* 1. Main App Light Base Theme */
+    .stApp {
+        background-color: #f6f8fa; /* Soft off-white canvas */
+        color: #24292f;            /* Dark charcoal text for readability */
+    }
+    
+    /* 2. Sidebar Layout (Light & Modern) */
+    [data-testid="stSidebar"] {
+        background-color: #ffffff !important; /* Crisp white sidebar */
+        border-right: 1px solid #d0d7de !important; /* Light border separator */
+    }
+    
+    /* Sidebar Navigation Links Text */
+    [data-testid="stSidebarNav"] label {
+        color: #24292f !important;
+        font-weight: 500 !important;
+        font-size: 1.05rem !important;
+    }
+
+    /* Unselected navigation links */
+    [data-testid="stSidebarNav"] a span {
+        color: #57606a !important; /* Slate grey */
+    }
+    
+    /* Active highlighted page in the sidebar */
+    [data-testid="stSidebarNav"] a[aria-current="page"] span {
+        color: #0969da !important;        /* Premium corporate blue */
+        font-weight: bold !important;
+    }
+    
+    /* Hover effect on sidebar items */
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #f3f4f6 !important;
+        border-radius: 8px;
+    }
+
+    /* 3. Logout Button Contrast Fix (Visible & Clean) */
+    div.stButton > button {
+        background-color: #ffffff !important;
+        color: #cf222e !important;            /* Distinct red alert text */
+        border: 1px solid #d0d7de !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 1.5rem !important;
+        font-weight: bold !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease-in-out !important;
+    }
+
+    /* Hover state for the logout button */
+    div.stButton > button:hover {
+        background-color: #ffebe9 !important; /* Soft light red background */
+        color: #a40e26 !important;            /* Deeper red text on hover */
+        border-color: #cf222e !important;
+    }
+    </style>
+""",
+    unsafe_allow_html=True,
+)
+import streamlit as st
+
 # ==================================
 # PAGE CONFIG
 # ==================================
@@ -1474,15 +1537,12 @@ for p in all_products:
         required = ["name", "price", "rating", "desc", "image", "category"]
         if all(key in p for key in required):
             clean_products.append(p)
-
 all_products = clean_products
 
 # ==================================
 # CATEGORY OPTIONS
 # ==================================
-
 categories = ["All"] + sorted(list(set(p["category"] for p in all_products)))
-
 # ==================================
 # CONTROLS
 # ==================================

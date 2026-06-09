@@ -277,7 +277,7 @@ if st.button("Complete Secure Payment", type="primary", use_container_width=True
             st.rerun()
         else:
             st.error(
-                "❌ Payment Declined: Invalid card layout metrics. ({new_streak}/3 failed attempts)"
+                f"❌ Payment Declined: Invalid card layout metrics. ({new_streak}/3 failed attempts)"
             )
         st.stop()
 

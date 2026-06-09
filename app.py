@@ -1,5 +1,6 @@
-import streamlit as st
+import re
 from datetime import datetime
+import streamlit as st
 from database.db import init_db
 
 # ============================================================
@@ -9,9 +10,9 @@ init_db()
 
 # Safe to import auth modules
 from database.auth import (
-    register_user,
-    login_user,
     get_failed_payment_streak,
+    login_user,
+    register_user,
     reset_password,
 )
 
@@ -764,16 +765,20 @@ else:
                 unsafe_allow_html=True,
             )
             st.write("")
-            admin_email = st.text_input("Admin Email", key="admin_email_input")
-            admin_password = st.text_input(
-                "Admin Password", type="password", key="admin_pass_input"
-            )
+
+            # Wrapped Admin Credentials in a form
+            with st.form("admin_gate_form"):
+                admin_email = st.text_input("Admin Email", key="admin_email_input")
+                admin_password = st.text_input(
+                    "Admin Password", type="password", key="admin_pass_input"
+                )
+                submit_admin = st.st.form_submit_button(
+                    "🚀 Authenticate", use_container_width=True
+                )
 
             c1, c2 = st.columns(2)
             with c1:
-                if st.button(
-                    "🚀 Authenticate", use_container_width=True, type="primary"
-                ):
+                if submit_admin:
                     if (
                         admin_email.strip() == "adminhere@gmail.com"
                         and admin_password.strip() == "admin123"
@@ -810,11 +815,16 @@ else:
                 unsafe_allow_html=True,
             )
             st.write("")
-            email = st.text_input("Registered Email")
-            new_password = st.text_input("New Password", type="password")
-            confirm_password = st.text_input("Confirm Password", type="password")
 
-            if st.button("Reset Password", use_container_width=True, type="primary"):
+            with st.form("forgot_password_form"):
+                email = st.text_input("Registered Email")
+                new_password = st.text_input("New Password", type="password")
+                confirm_password = st.text_input("Confirm Password", type="password")
+                submit_fp = st.form_submit_button(
+                    "Reset Password", use_container_width=True
+                )
+
+            if submit_fp:
                 if not email or not new_password or not confirm_password:
                     st.error("Please fill all fields.")
                 elif new_password != confirm_password:
@@ -838,26 +848,29 @@ else:
         st.stop()
 
     # ── Main Login + Info Layout ──────────────────────────────
-    # CRITICAL CHANGE: strictly nested within the 'else' block so
-    # it disappears completely when admin is logged in.
     col_login, col_info = st.columns([1.1, 1.9], gap="large")
 
     # LEFT — Login / Signup card
     with col_login:
         st.markdown(
-            '<div class="section-header">Customer Access</div>', unsafe_allow_html=True
+            '<div class="section-header">Customer Access</div>',
+            unsafe_allow_html=True,
         )
         st.markdown('<div class="login-card-wrap">', unsafe_allow_html=True)
 
         login_tab, signup_tab = st.tabs(["🔒 Sign In", "✨ Create Account"])
 
         with login_tab:
-            email = st.text_input("Email address", key="login_email")
-            password = st.text_input("Password", type="password", key="login_password")
+            with st.form("login_form", clear_on_submit=False):
+                email = st.text_input("Email address", key="login_email")
+                password = st.text_input(
+                    "Password", type="password", key="login_password"
+                )
+                submit_login = st.form_submit_button(
+                    "Login to ShopZone →", use_container_width=True
+                )
 
-            if st.button(
-                "Login to ShopZone →", use_container_width=True, type="primary"
-            ):
+            if submit_login:
                 if not email.strip() or not password.strip():
                     st.error("Please fill out all fields.")
                 else:
@@ -885,31 +898,41 @@ else:
                 st.rerun()
 
         with signup_tab:
-            name = st.text_input("Full Name", key="signup_name")
-            signup_email = st.text_input("Email Address", key="signp_email")
-            signup_password = st.text_input(
-                "Password (min 6 chars)", type="password", key="signup_password"
-            )
+            # FIX: Form container added to tie state updates cleanly to the button context
+            with st.form("signup_form", clear_on_submit=False):
+                name = st.text_input("Full Name", key="signup_name")
+                signup_email = st.text_input("Email Address", key="signup_email")
+                signup_phone = st.text_input("Phone Number", key="signup_phone")
+                signup_password = st.text_input(
+                    "Password", type="password", key="signup_password"
+                )
+                submit_signup = st.form_submit_button(
+                    "Register Account", use_container_width=True
+                )
 
-            if st.button("Create My Account →", use_container_width=True):
+            if submit_signup:
                 if (
                     not name.strip()
                     or not signup_email.strip()
+                    or not signup_phone.strip()
                     or not signup_password.strip()
                 ):
-                    st.error("All fields are required.")
+                    st.error("All fields, including Phone Number, are required.")
                 elif len(signup_password) < 6:
                     st.error("Password must be at least 6 characters.")
                 else:
                     success = register_user(
-                        name.strip(), signup_email.strip(), signup_password.strip()
+                        name=name.strip(),
+                        email=signup_email.strip(),
+                        phone=signup_phone.strip(),
+                        password=signup_password.strip(),
                     )
                     if success:
-                        st.success("🎉 Account created! Switch to Sign In to log in.")
+                        st.success(
+                            "Registration Successful! Please switch to the Login tab."
+                        )
                     else:
-                        st.error("An account with that email already exists.")
-
-        st.markdown("</div>", unsafe_allow_html=True)
+                        st.error("This email address is already in use.")
 
     # RIGHT — Shop info
     with col_info:
@@ -954,37 +977,23 @@ else:
             unsafe_allow_html=True,
         )
 
-        # Perks
+        # Perks (CSS structural classes fixed to fit layout wrappers)
         st.markdown(
             """
             <div class="perks-grid">
                 <div class="perk-row">
-                    <span class="perk-icon">🚚</span>
-                    <span class="perk-text"><strong>Free delivery</strong> on orders above ₹999</span>
+                    <div class="perk-icon">🚚</div>
+                    <div class="perk-text"><strong>Free Shipping</strong> on orders above $50</div>
                 </div>
                 <div class="perk-row">
-                    <span class="perk-icon">⚡</span>
-                    <span class="perk-text"><strong>Express checkout</strong> — pay in under 30 seconds</span>
+                    <div class="perk-icon">↩️</div>
+                    <div class="perk-text"><strong>Easy Returns</strong> within 30 days window</div>
                 </div>
                 <div class="perk-row">
-                    <span class="perk-icon">📦</span>
-                    <span class="perk-text"><strong>24×7 support</strong> for every order, every day</span>
+                    <div class="perk-icon">🔒</div>
+                    <div class="perk-text"><strong>Secure Payments</strong> protected by AES-256 ledger</div>
                 </div>
             </div>
         """,
             unsafe_allow_html=True,
         )
-
-        # Offer banner
-        st.markdown(
-            """
-            <div class="offer-banner">
-                <span class="offer-tag">🎉 Today</span>
-                <p class="offer-text"><strong>Flat 20% OFF on all Electronics</strong> + free delivery across India. Limited time.</p>
-            </div>
-        """,
-            unsafe_allow_html=True,
-        )
-
-st.divider()
-st.caption("© 2026 ShopZone Marketplace • Secure Customer Portal")
