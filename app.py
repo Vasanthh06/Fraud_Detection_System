@@ -180,7 +180,7 @@ st.markdown(
 }
 .hero-subtitle {
     font-size: 16px;
-    color: #64748b;
+    color: #a5b4fc;
     font-weight: 400;
     max-width: 480px;
     margin: 0 auto;
@@ -196,7 +196,7 @@ st.markdown(
 .hero-pill {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08);
-    color: #94a3b8;
+    color: #c7d2fe;
     font-size: 13px;
     padding: 6px 14px;
     border-radius: 50px;
@@ -232,13 +232,13 @@ st.markdown(
    STREAMLIT INPUT OVERRIDES
 =========================== */
 .stTextInput > label {
-    color: #94a3b8 !important;
+    color: #e2e8f0 !important;
     font-size: 13px !important;
     font-weight: 500 !important;
     letter-spacing: 0.3px !important;
 }
 .stTextInput input {
-    background: #0d1117 !important;
+    background: #0f172a !important;
     border: 1px solid rgba(99,102,241,0.25) !important;
     border-radius: 12px !important;
     color: #f1f5f9 !important;
@@ -265,7 +265,7 @@ st.markdown(
     border-radius: 9px !important;
     font-size: 14px !important;
     font-weight: 600 !important;
-    color: #64748b !important;
+    color: #c7d2fe !important;
     padding: 8px 18px !important;
     transition: all 0.2s ease !important;
 }
@@ -343,7 +343,7 @@ st.markdown(
 }
 .feat-desc {
     font-size: 12px;
-    color: #475569;
+    color: #c7d2fe;
     line-height: 1.5;
     margin: 0;
 }
@@ -370,12 +370,12 @@ st.markdown(
     font-family: 'Syne', sans-serif;
     font-size: 22px;
     font-weight: 800;
-    color: #6366f1;
+    color: #818cf8;
     line-height: 1;
 }
 .stat-label {
     font-size: 11px;
-    color: #64748b;
+    color: #c7d2fe;
     margin-top: 4px;
     font-weight: 500;
     text-transform: uppercase;
@@ -412,7 +412,7 @@ st.markdown(
     white-space: nowrap;
 }
 .offer-text {
-    color: #cbd5e1;
+    color: #e2e8f0;
     font-size: 13px;
     line-height: 1.5;
     margin: 0;
@@ -445,7 +445,7 @@ st.markdown(
     padding: 12px 16px;
 }
 .perk-icon { font-size: 18px; }
-.perk-text { font-size: 13px; color: #94a3b8; font-weight: 500; }
+.perk-text { font-size: 13px; color: #e2e8f0; font-weight: 500; }
 .perk-text strong { color: #f1f5f9; }
 
 /* ===========================
@@ -454,7 +454,7 @@ st.markdown(
 .staff-btn-wrap .stButton > button {
     background: rgba(255,255,255,0.05) !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
-    color: #94a3b8 !important;
+    color: #c7d2fe !important;
     height: 38px !important;
     font-size: 12px !important;
     font-weight: 600 !important;
@@ -487,7 +487,7 @@ st.markdown(
 }
 .admin-gate-sub {
     font-size: 12px;
-    color: #475569;
+    color: #c7d2fe;
     margin-bottom: 24px;
 }
 .admin-lock-icon {
@@ -534,7 +534,7 @@ st.markdown(
 }
 .admin-hero-sub {
     font-size: 14px;
-    color: #475569;
+    color: #c7d2fe;
     max-width: 460px;
     margin: 0 auto;
 }
@@ -555,7 +555,7 @@ st.markdown(
     font-family: 'Syne', sans-serif;
     font-size: 16px;
     font-weight: 700;
-    color: #6366f1;
+    color: #818cf8;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     margin-bottom: 16px;
@@ -582,7 +582,7 @@ st.markdown(
 }
 .fp-sub {
     font-size: 13px;
-    color: #64748b;
+    color: #c7d2fe;
     margin-bottom: 24px;
 }
 
@@ -595,10 +595,13 @@ hr {
 }
 
 /* ===========================
-   FOOTER
+   FOOTER — WHITE TEXT FIX
 =========================== */
-.stApp footer, .stCaption {
-    color: #334155 !important;
+.stApp footer {
+    color: #e2e8f0 !important;
+}
+.stCaption {
+    color: #e2e8f0 !important;
 }
 
 /* ===========================
@@ -621,13 +624,833 @@ hr {
     padding: 14px 16px;
 }
 [data-testid="stMetricValue"] {
-    color: #6366f1 !important;
+    color: #818cf8 !important;
     font-family: 'Syne', sans-serif !important;
     font-size: 22px !important;
 }
 [data-testid="stMetricLabel"] {
-    color: #64748b !important;
+    color: #c7d2fe !important;
     font-size: 12px !important;
+}
+
+/* ===========================
+   GENERAL TEXT COLOR FIXES
+=========================== */
+/* Make all paragraph text white */
+p {
+    color: #e2e8f0 !important;
+}
+
+/* Make all heading text white */
+h1, h2, h3, h4, h5, h6 {
+    color: #f1f5f9 !important;
+}
+
+/* Make labels and small text white */
+label {
+    color: #e2e8f0 !important;
+}
+
+/* Streamlit widget labels */
+[data-testid="stWidgetLabel"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for st.write text */
+[data-testid="stMarkdownContainer"] p {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for form labels */
+[data-testid="stForm"] label {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for checkbox and radio labels */
+[data-testid="stCheckbox"] label,
+[data-testid="stRadio"] label {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for selectbox labels */
+[data-testid="stSelectbox"] label {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for text area */
+.stTextArea textarea {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+}
+
+/* Fix for selectbox */
+.stSelectbox > div > div {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+}
+
+/* Fix for multiselect */
+.stMultiSelect > div > div {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+}
+
+/* Fix for date input */
+.stDateInput input {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+}
+
+/* Fix for number input */
+.stNumberInput input {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+}
+
+/* Fix for slider */
+.stSlider > div > div > div {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for file uploader */
+.stFileUploader > div > div {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+}
+
+/* Fix for code block */
+pre {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+/* Fix for table */
+table {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for dataframe */
+[data-testid="stDataFrame"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for expander */
+[data-testid="stExpander"] > div > div {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for toast notifications */
+[data-testid="stToast"] {
+    color: #f1f5f9 !important;
+}
+
+/* Fix for tooltip */
+[data-testid="stTooltipIcon"] {
+    color: #c7d2fe !important;
+}
+
+/* Fix for spinner */
+[data-testid="stSpinner"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for progress bar */
+[data-testid="stProgressBar"] > div {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for metric delta */
+[data-testid="stMetricDelta"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for empty state */
+[data-testid="stEmpty"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for status */
+[data-testid="stStatus"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for chat message */
+[data-testid="stChatMessage"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for chat input */
+[data-testid="stChatInput"] input {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+}
+
+/* Fix for audio player */
+[data-testid="stAudio"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for video player */
+[data-testid="stVideo"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for image caption */
+[data-testid="stImage"] figcaption {
+    color: #c7d2fe !important;
+}
+
+/* Fix for download button */
+[data-testid="stDownloadButton"] button {
+    color: white !important;
+}
+
+/* Fix for link button */
+[data-testid="stLinkButton"] a {
+    color: #818cf8 !important;
+}
+
+/* Fix for page link */
+[data-testid="stPageLink"] a {
+    color: #c7d2fe !important;
+}
+
+/* Fix for navigation */
+[data-testid="stNavigation"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for sidebar navigation */
+[data-testid="stSidebarNav"] a {
+    color: #c7d2fe !important;
+}
+
+/* Fix for sidebar navigation active */
+[data-testid="stSidebarNav"] a[aria-current="page"] {
+    color: #818cf8 !important;
+}
+
+/* Fix for breadcrumbs */
+[data-testid="stBreadcrumbs"] {
+    color: #c7d2fe !important;
+}
+
+/* Fix for pagination */
+[data-testid="stPagination"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for search */
+[data-testid="stSearch"] input {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+}
+
+/* Fix for filter */
+[data-testid="stFilter"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for sort */
+[data-testid="stSort"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for column config */
+[data-testid="stColumnConfig"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for cell editor */
+[data-testid="stCellEditor"] {
+    color: #f1f5f9 !important;
+}
+
+/* Fix for row selector */
+[data-testid="stRowSelector"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for batch editor */
+[data-testid="stBatchEditor"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for data editor */
+[data-testid="stDataEditor"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for code editor */
+[data-testid="stCodeEditor"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for json viewer */
+[data-testid="stJsonViewer"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for html viewer */
+[data-testid="stHtmlViewer"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for markdown viewer */
+[data-testid="stMarkdownViewer"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for latex viewer */
+[data-testid="stLatexViewer"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for graphviz viewer */
+[data-testid="stGraphvizViewer"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for plotly chart */
+[data-testid="stPlotlyChart"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for altair chart */
+[data-testid="stAltairChart"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for vega lite chart */
+[data-testid="stVegaLiteChart"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for bokeh chart */
+[data-testid="stBokehChart"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for pydeck chart */
+[data-testid="stPydeckChart"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for deck gl chart */
+[data-testid="stDeckGlChart"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for mapbox */
+[data-testid="stMapbox"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for folium */
+[data-testid="stFolium"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for leaflet */
+[data-testid="stLeaflet"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for google maps */
+[data-testid="stGoogleMaps"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for iframe */
+[data-testid="stIframe"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for html */
+[data-testid="stHtml"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for markdown */
+[data-testid="stMarkdown"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for text */
+[data-testid="stText"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for title */
+[data-testid="stTitle"] {
+    color: #f1f5f9 !important;
+}
+
+/* Fix for header */
+[data-testid="stHeader"] {
+    color: #f1f5f9 !important;
+}
+
+/* Fix for subheader */
+[data-testid="stSubheader"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for caption */
+[data-testid="stCaption"] {
+    color: #c7d2fe !important;
+}
+
+/* Fix for code */
+[data-testid="stCode"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for latex */
+[data-testid="stLatex"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for divider */
+[data-testid="stDivider"] {
+    color: #475569 !important;
+}
+
+/* Fix for space */
+[data-testid="stSpace"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for tabs */
+[data-testid="stTabs"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for tab */
+[data-testid="stTab"] {
+    color: #c7d2fe !important;
+}
+
+/* Fix for tab panel */
+[data-testid="stTabPanel"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for container */
+[data-testid="stContainer"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for column */
+[data-testid="stColumn"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for vertical block */
+[data-testid="stVerticalBlock"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for horizontal block */
+[data-testid="stHorizontalBlock"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for expander */
+[data-testid="stExpander"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for form */
+[data-testid="stForm"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for form submit button */
+[data-testid="stFormSubmitButton"] {
+    color: white !important;
+}
+
+/* Fix for cache spinner */
+[data-testid="stCacheSpinner"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for dialog */
+[data-testid="stDialog"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for alert */
+[data-testid="stAlert"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for info box */
+[data-testid="stInfoBox"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for success box */
+[data-testid="stSuccessBox"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for warning box */
+[data-testid="stWarningBox"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for error box */
+[data-testid="stErrorBox"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for exception */
+[data-testid="stException"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for traceback */
+[data-testid="stTraceback"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for balloon */
+[data-testid="stBalloon"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for snow */
+[data-testid="stSnow"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for toast */
+[data-testid="stToast"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy dataframe */
+[data-testid="stLegacyDataFrame"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy table */
+[data-testid="stLegacyTable"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy chart */
+[data-testid="stLegacyChart"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy map */
+[data-testid="stLegacyMap"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy image */
+[data-testid="stLegacyImage"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy audio */
+[data-testid="stLegacyAudio"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy video */
+[data-testid="stLegacyVideo"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy html */
+[data-testid="stLegacyHtml"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy markdown */
+[data-testid="stLegacyMarkdown"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy text */
+[data-testid="stLegacyText"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy title */
+[data-testid="stLegacyTitle"] {
+    color: #f1f5f9 !important;
+}
+
+/* Fix for legacy header */
+[data-testid="stLegacyHeader"] {
+    color: #f1f5f9 !important;
+}
+
+/* Fix for legacy subheader */
+[data-testid="stLegacySubheader"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy caption */
+[data-testid="stLegacyCaption"] {
+    color: #c7d2fe !important;
+}
+
+/* Fix for legacy code */
+[data-testid="stLegacyCode"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy latex */
+[data-testid="stLegacyLatex"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy divider */
+[data-testid="stLegacyDivider"] {
+    color: #475569 !important;
+}
+
+/* Fix for legacy space */
+[data-testid="stLegacySpace"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy tabs */
+[data-testid="stLegacyTabs"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy tab */
+[data-testid="stLegacyTab"] {
+    color: #c7d2fe !important;
+}
+
+/* Fix for legacy tab panel */
+[data-testid="stLegacyTabPanel"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy container */
+[data-testid="stLegacyContainer"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy column */
+[data-testid="stLegacyColumn"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy vertical block */
+[data-testid="stLegacyVerticalBlock"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy horizontal block */
+[data-testid="stLegacyHorizontalBlock"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy expander */
+[data-testid="stLegacyExpander"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy form */
+[data-testid="stLegacyForm"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy form submit button */
+[data-testid="stLegacyFormSubmitButton"] {
+    color: white !important;
+}
+
+/* Fix for legacy cache spinner */
+[data-testid="stLegacyCacheSpinner"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy dialog */
+[data-testid="stLegacyDialog"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy alert */
+[data-testid="stLegacyAlert"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy info box */
+[data-testid="stLegacyInfoBox"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy success box */
+[data-testid="stLegacySuccessBox"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy warning box */
+[data-testid="stLegacyWarningBox"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy error box */
+[data-testid="stLegacyErrorBox"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy exception */
+[data-testid="stLegacyException"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy traceback */
+[data-testid="stLegacyTraceback"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy balloon */
+[data-testid="stLegacyBalloon"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy snow */
+[data-testid="stLegacySnow"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for legacy toast */
+[data-testid="stLegacyToast"] {
+    color: #e2e8f0 !important;
+}
+
+/* Fix for all other text elements */
+* {
+    color: #e2e8f0;
+}
+
+/* Override for specific elements that need different colors */
+.stButton > button {
+    color: white !important;
+}
+
+.stTabs [aria-selected="true"] {
+    color: white !important;
+}
+
+.offer-tag {
+    color: white !important;
+}
+
+.hero-title span {
+    color: transparent !important;
+}
+
+.admin-status-dot {
+    color: transparent !important;
+}
+
+[data-testid="stMetricValue"] {
+    color: #818cf8 !important;
+}
+
+[data-testid="stMetricLabel"] {
+    color: #c7d2fe !important;
+}
+
+.stat-num {
+    color: #818cf8 !important;
+}
+
+.stat-label {
+    color: #c7d2fe !important;
+}
+
+.feat-title {
+    color: #f1f5f9 !important;
+}
+
+.feat-desc {
+    color: #c7d2fe !important;
+}
+
+.perk-text {
+    color: #e2e8f0 !important;
+}
+
+.perk-text strong {
+    color: #f1f5f9 !important;
+}
+
+.offer-text {
+    color: #e2e8f0 !important;
+}
+
+.offer-text strong {
+    color: #f1f5f9 !important;
+}
+
+.fp-title {
+    color: #f1f5f9 !important;
+}
+
+.fp-sub {
+    color: #c7d2fe !important;
+}
+
+.admin-gate-title {
+    color: #f1f5f9 !important;
+}
+
+.admin-gate-sub {
+    color: #c7d2fe !important;
+}
+
+.admin-hero-title {
+    color: #f1f5f9 !important;
+}
+
+.admin-hero-sub {
+    color: #c7d2fe !important;
+}
+
+.admin-section-header {
+    color: #818cf8 !important;
+}
+
+.section-header {
+    color: #f1f5f9 !important;
+}
+
+.hero-badge {
+    color: #a5b4fc !important;
+}
+
+.hero-title {
+    color: #f1f5f9 !important;
+}
+
+.hero-subtitle {
+    color: #a5b4fc !important;
+}
+
+.hero-pill {
+    color: #c7d2fe !important;
 }
 
 </style>
@@ -828,7 +1651,7 @@ if not st.session_state.logged_in:
                     -webkit-background-clip:text;-webkit-text-fill-color:transparent;
                     background-clip:text;'>ShopZone</span>
                 </h1>
-                <p style='color:#475569;font-size:14px;margin-bottom:20px;'>
+                <p style='color:#e2e8f0;font-size:14px;margin-bottom:20px;'>
                     Your premium one-stop marketplace — from daily essentials to the latest tech.
                 </p>
             """,
@@ -976,4 +1799,7 @@ else:
     pg.run()
 
 st.divider()
-st.caption("© 2026 ShopZone Marketplace • Secure Customer Portal")
+st.markdown(
+    '<p style="color:#e2e8f0;text-align:center;">© 2026 ShopZone Marketplace • Secure Customer Portal</p>',
+    unsafe_allow_html=True,
+)
