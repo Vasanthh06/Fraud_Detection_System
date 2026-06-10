@@ -7,6 +7,10 @@ DB_PATH = os.path.join(BASE_DIR, "shopzone.db")
 
 def init_db():
     """Initialize the database with all required tables."""
+    # Remove old database if it exists to recreate with new schema
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
