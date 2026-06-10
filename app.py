@@ -1,6 +1,5 @@
-import re
-from datetime import datetime
 import streamlit as st
+from datetime import datetime
 from database.db import init_db
 
 # ============================================================
@@ -8,10 +7,11 @@ from database.db import init_db
 # ============================================================
 init_db()
 
+# Safe to import auth modules
 from database.auth import (
-    get_failed_payment_streak,
-    login_user,
     register_user,
+    login_user,
+    get_failed_payment_streak,
     reset_password,
 )
 
@@ -30,20 +30,28 @@ st.set_page_config(
 # ============================================================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
+
 if "login_time" not in st.session_state:
     st.session_state.login_time = None
+
 if "admin_login" not in st.session_state:
     st.session_state.admin_login = False
+
 if "cart" not in st.session_state:
     st.session_state.cart = []
+
 if "total_amount" not in st.session_state:
     st.session_state.total_amount = 0
+
 if "username" not in st.session_state:
     st.session_state.username = "User"
+
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
+
 if "show_forgot_password" not in st.session_state:
     st.session_state.show_forgot_password = False
 
@@ -54,78 +62,99 @@ if not st.session_state.logged_in:
     st.markdown(
         """
         <style>
-        section[data-testid="stSidebar"] { display: none !important; }
+        section[data-testid="stSidebar"] { display: none; }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
 # ============================================================
-# 5. SESSION TIMEOUT (1 hour) — FIXED: use total_seconds()
+# 5. SESSION TIMEOUT (1 hour)
 # ============================================================
 if st.session_state.logged_in and st.session_state.login_time:
-    elapsed = (datetime.now() - st.session_state.login_time).total_seconds()
-    if elapsed > 3600:
+    seconds = (datetime.now() - st.session_state.login_time).seconds
+    if seconds > 3600:
         st.session_state.logged_in = False
         st.session_state.is_admin = False
         st.session_state.login_time = None
         st.session_state.admin_login = False
-        st.session_state.cart = []
-        st.session_state.total_amount = 0
-        st.session_state.user_email = ""
         st.warning("Session Expired. Please Login Again.")
         st.stop()
 
 # ============================================================
-# 6. CSS — YOUR ORIGINAL UI + ENHANCED BUTTONS
+# 6. REDESIGNED CSS — Deep Navy + Coral Accent + Soft Cards
 # ============================================================
 st.markdown(
     """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap');
 
+/* ===========================
+   GLOBAL RESET & BASE
+=========================== */
 *, *::before, *::after { box-sizing: border-box; }
 
 .stApp {
-    background: #f6f8fa;
-    color: #24292f;
+    background: #0d1117;
     font-family: 'Inter', sans-serif;
 }
 
+/* Remove default streamlit padding */
 .block-container {
     padding-top: 2rem !important;
     padding-bottom: 2rem !important;
 }
 
+/* ===========================
+   ANIMATED BACKGROUND GRID
+=========================== */
 .stApp::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-        linear-gradient(rgba(9,105,218,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(9,105,218,0.03) 1px, transparent 1px);
+        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
 }
 
+/* ===========================
+   HERO BANNER
+=========================== */
 .hero-wrap {
     position: relative;
     text-align: center;
     padding: 56px 40px 48px;
     margin-bottom: 40px;
     border-radius: 24px;
-    background: linear-gradient(135deg, #ffffff 0%, #f1f3f5 100%);
-    border: 1px solid #d0d7de;
+    background: linear-gradient(135deg, #1a1f2e 0%, #161b2a 100%);
+    border: 1px solid rgba(99,102,241,0.2);
     overflow: hidden;
     animation: fadeSlideDown 0.6s ease both;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+.hero-wrap::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+.hero-wrap::before {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -40px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(244,114,74,0.12) 0%, transparent 70%);
+    pointer-events: none;
 }
 .hero-badge {
     display: inline-block;
-    background: rgba(9,105,218,0.1);
-    border: 1px solid rgba(9,105,218,0.25);
-    color: #0969da;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.35);
+    color: #a5b4fc;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 2px;
@@ -138,20 +167,20 @@ st.markdown(
     font-family: 'Syne', sans-serif;
     font-size: clamp(38px, 6vw, 64px);
     font-weight: 800;
-    color: #24292f;
+    color: #f1f5f9;
     line-height: 1.1;
     margin: 0 0 12px;
     letter-spacing: -1px;
 }
 .hero-title span {
-    background: linear-gradient(90deg, #0969da, #cf222e);
+    background: linear-gradient(90deg, #6366f1, #f4724a);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 .hero-subtitle {
     font-size: 16px;
-    color: #57606a;
+    color: #64748b;
     font-weight: 400;
     max-width: 480px;
     margin: 0 auto;
@@ -165,169 +194,163 @@ st.markdown(
     flex-wrap: wrap;
 }
 .hero-pill {
-    background: #ffffff;
-    border: 1px solid #d0d7de;
-    color: #57606a;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #94a3b8;
     font-size: 13px;
     padding: 6px 14px;
     border-radius: 50px;
     font-weight: 500;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
+/* ===========================
+   SECTION HEADER
+=========================== */
 .section-header {
     font-family: 'Syne', sans-serif;
     font-size: 22px;
     font-weight: 700;
-    color: #24292f;
+    color: #f1f5f9;
     margin-bottom: 20px;
+    margin-top: 0;
     letter-spacing: -0.3px;
 }
 
+/* ===========================
+   LOGIN / SIGNUP CARD
+=========================== */
 .login-card-wrap {
-    background: #ffffff;
-    border: 1px solid #d0d7de;
+    background: #161b2a;
+    border: 1px solid rgba(99,102,241,0.18);
     border-radius: 20px;
-    padding: 32px 28px;
+    padding: 24px 28px;
     animation: fadeSlideUp 0.5s ease both;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
 }
 
+/* ===========================
+   STREAMLIT INPUT OVERRIDES
+=========================== */
 .stTextInput > label {
-    color: #57606a !important;
+    color: #94a3b8 !important;
     font-size: 13px !important;
     font-weight: 500 !important;
+    letter-spacing: 0.3px !important;
 }
 .stTextInput input {
-    background: #ffffff !important;
-    border: 1px solid #d0d7de !important;
+    background: #0d1117 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
     border-radius: 12px !important;
-    color: #24292f !important;
+    color: #f1f5f9 !important;
     font-size: 15px !important;
     padding: 12px 16px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 .stTextInput input:focus {
-    border-color: #0969da !important;
-    box-shadow: 0 0 0 3px rgba(9,105,218,0.15) !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
 }
 
-[data-testid="stSidebar"] {
-    background-color: #ffffff !important;
-    border-right: 1px solid #d0d7de !important;
-}
-[data-testid="stSidebarNav"] label {
-    color: #24292f !important;
-}
-[data-testid="stSidebarNav"] a span {
-    color: #57606a !important;
-}
-[data-testid="stSidebarNav"] a[aria-current="page"] span {
-    color: #0969da !important;
-    font-weight: bold !important;
-}
-
+/* ===========================
+   TABS
+=========================== */
 .stTabs [data-baseweb="tab-list"] {
-    background: #f6f8fa !important;
+    background: rgba(255,255,255,0.03) !important;
     border-radius: 12px !important;
     padding: 4px !important;
     gap: 4px !important;
-    border: 1px solid #d0d7de !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
 }
 .stTabs [data-baseweb="tab"] {
     border-radius: 9px !important;
     font-size: 14px !important;
     font-weight: 600 !important;
-    color: #57606a !important;
+    color: #64748b !important;
     padding: 8px 18px !important;
+    transition: all 0.2s ease !important;
 }
 .stTabs [aria-selected="true"] {
-    background: #0969da !important;
+    background: #6366f1 !important;
     color: white !important;
 }
+.stTabs [data-baseweb="tab-highlight"] {
+    display: none !important;
+}
+.stTabs [data-baseweb="tab-border"] {
+    display: none !important;
+}
 
+/* ===========================
+   BUTTONS
+=========================== */
 .stButton > button {
     width: 100% !important;
     height: 48px !important;
     border-radius: 12px !important;
     border: none !important;
     font-size: 14px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.5px !important;
-    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+    color: white !important;
+    transition: all 0.25s ease !important;
     position: relative !important;
     overflow: hidden !important;
-    cursor: pointer !important;
 }
-
-.stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #0969da 0%, #054da7 50%, #0969da 100%) !important;
-    color: white !important;
-    box-shadow: 0 4px 15px rgba(9,105,218,0.35) !important;
-    background-size: 200% 200% !important;
-    animation: gradientShift 3s ease infinite !important;
+.stButton > button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
 }
-.stButton > button[kind="primary"]:hover {
+.stButton > button:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(9,105,218,0.5) !important;
-    filter: brightness(1.1) !important;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.4) !important;
 }
-.stButton > button[kind="primary"]:active {
-    transform: translateY(0) !important;
-}
-
-.stButton > button[kind="secondary"] {
-    background: #ffffff !important;
-    color: #57606a !important;
-    border: 1px solid #d0d7de !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
-}
-.stButton > button[kind="secondary"]:hover {
-    background: #f6f8fa !important;
-    color: #24292f !important;
-    border-color: #0969da !important;
-    box-shadow: 0 4px 12px rgba(9,105,218,0.1) !important;
-    transform: translateY(-1px) !important;
+.stButton > button:hover::after { opacity: 1; }
+.stButton > button:active {
+    transform: translateY(0) scale(0.98) !important;
 }
 
-.staff-btn .stButton > button {
-    background: linear-gradient(135deg, #24292f 0%, #1a1f2e 100%) !important;
-    color: #ffffff !important;
-    border: none !important;
-    font-size: 12px !important;
-    height: 38px !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-}
-.staff-btn .stButton > button:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.25) !important;
-    filter: brightness(1.2) !important;
-}
-
+/* ===========================
+   FEATURE / INFO CARDS
+=========================== */
 .feat-card {
-    background: #ffffff;
-    border: 1px solid #d0d7de;
+    background: #161b2a;
+    border: 1px solid rgba(255,255,255,0.07);
     border-radius: 16px;
     padding: 24px 20px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    transition: all 0.3s ease;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    animation: fadeSlideUp 0.5s ease both;
 }
 .feat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    border-color: #0969da;
+    transform: translateY(-5px);
+    border-color: rgba(99,102,241,0.35);
+    box-shadow: 0 12px 40px rgba(99,102,241,0.1);
+}
+.feat-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
 }
 .feat-title {
     font-weight: 700;
     font-size: 14px;
-    color: #24292f;
+    color: #f1f5f9;
     margin-bottom: 6px;
 }
 .feat-desc {
     font-size: 12px;
-    color: #57606a;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
 }
 
+/* ===========================
+   STATS ROW
+=========================== */
 .stats-row {
     display: flex;
     gap: 12px;
@@ -337,28 +360,75 @@ st.markdown(
 .stat-box {
     flex: 1;
     min-width: 90px;
-    background: rgba(9,105,218,0.06);
-    border: 1px solid rgba(9,105,218,0.15);
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.18);
     border-radius: 14px;
     padding: 16px 12px;
     text-align: center;
-    transition: all 0.3s ease;
-}
-.stat-box:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(9,105,218,0.1);
 }
 .stat-num {
     font-family: 'Syne', sans-serif;
     font-size: 22px;
     font-weight: 800;
-    color: #0969da;
+    color: #6366f1;
+    line-height: 1;
 }
 .stat-label {
     font-size: 11px;
-    color: #57606a;
+    color: #64748b;
+    margin-top: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
+/* ===========================
+   OFFER BANNER
+=========================== */
+.offer-banner {
+    background: linear-gradient(135deg, #1e1030, #1a1f2e);
+    border: 1px solid rgba(244,114,74,0.25);
+    border-radius: 16px;
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+    animation: pulse-border 3s ease infinite;
+}
+@keyframes pulse-border {
+    0%, 100% { border-color: rgba(244,114,74,0.25); }
+    50%       { border-color: rgba(244,114,74,0.55); }
+}
+.offer-tag {
+    background: linear-gradient(135deg, #f4724a, #e85d3a);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.offer-text {
+    color: #cbd5e1;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0;
+}
+.offer-text strong { color: #f1f5f9; }
+
+/* ===========================
+   INFO / SUCCESS ALERTS
+=========================== */
+.stInfo, .stSuccess, .stError, .stWarning {
+    border-radius: 12px !important;
+}
+
+/* ===========================
+   DELIVERY PERKS BLOCK
+=========================== */
 .perks-grid {
     display: flex;
     flex-direction: column;
@@ -369,105 +439,204 @@ st.markdown(
     display: flex;
     align-items: center;
     gap: 12px;
-    background: #ffffff;
-    border: 1px solid #d0d7de;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
     border-radius: 12px;
     padding: 12px 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    transition: all 0.3s ease;
 }
-.perk-row:hover {
-    border-color: #0969da;
-    box-shadow: 0 2px 8px rgba(9,105,218,0.08);
-    transform: translateX(4px);
-}
-.perk-text { font-size: 13px; color: #57606a; }
-.perk-text strong { color: #24292f; }
+.perk-icon { font-size: 18px; }
+.perk-text { font-size: 13px; color: #94a3b8; font-weight: 500; }
+.perk-text strong { color: #f1f5f9; }
 
+/* ===========================
+   STAFF LOGIN BUTTON (top-right)
+=========================== */
+.staff-btn-wrap .stButton > button {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: #94a3b8 !important;
+    height: 38px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+.staff-btn-wrap .stButton > button:hover {
+    background: rgba(99,102,241,0.12) !important;
+    border-color: rgba(99,102,241,0.35) !important;
+    color: #a5b4fc !important;
+    box-shadow: none !important;
+}
+
+/* ===========================
+   ADMIN GATE CARD
+=========================== */
 .admin-gate-card {
-    background: #ffffff;
-    border: 1px solid #d0d7de;
+    background: #0d1117;
+    border: 1px solid rgba(99,102,241,0.25);
     border-radius: 20px;
     padding: 36px 32px;
     text-align: center;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-    transition: all 0.3s ease;
-}
-.admin-gate-card:hover {
-    box-shadow: 0 15px 50px rgba(0,0,0,0.12);
+    box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+    animation: fadeSlideUp 0.4s ease both;
 }
 .admin-gate-title {
     font-family: 'Syne', sans-serif;
     font-size: 18px;
     font-weight: 700;
-    color: #24292f;
+    color: #f1f5f9;
+    margin-bottom: 6px;
+}
+.admin-gate-sub {
+    font-size: 12px;
+    color: #475569;
+    margin-bottom: 24px;
+}
+.admin-lock-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-6px); }
 }
 
+/* ===========================
+   ADMIN COMMAND CENTER
+=========================== */
 .admin-hero {
-    background: linear-gradient(135deg, #ffffff 0%, #f6f8fa 100%);
-    border: 1px solid #d0d7de;
+    background: linear-gradient(135deg, #0d1117 0%, #161b2a 100%);
+    border: 1px solid rgba(99,102,241,0.2);
     border-radius: 24px;
     padding: 48px 40px;
     text-align: center;
     margin-bottom: 32px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+    animation: fadeSlideDown 0.5s ease both;
+}
+.admin-hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%;
+    transform: translateX(-50%);
+    width: 400px; height: 200px;
+    background: radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%);
+    pointer-events: none;
 }
 .admin-hero-title {
     font-family: 'Syne', sans-serif;
     font-size: clamp(28px, 4vw, 48px);
     font-weight: 800;
-    color: #24292f;
+    color: #f1f5f9;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+.admin-hero-sub {
+    font-size: 14px;
+    color: #475569;
+    max-width: 460px;
+    margin: 0 auto;
+}
+.admin-status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: blink 1.8s ease infinite;
+    vertical-align: middle;
+}
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+.admin-section-header {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
 }
 
+/* ===========================
+   FORGOT PASSWORD PAGE
+=========================== */
 .fp-card {
-    background: #ffffff;
-    border: 1px solid #d0d7de;
+    background: #161b2a;
+    border: 1px solid rgba(99,102,241,0.2);
     border-radius: 20px;
     padding: 36px 32px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    animation: fadeSlideUp 0.4s ease both;
+    max-width: 480px;
+    margin: 0 auto;
 }
 .fp-title {
     font-family: 'Syne', sans-serif;
     font-size: 22px;
     font-weight: 700;
-    color: #24292f;
+    color: #f1f5f9;
+    margin-bottom: 6px;
+}
+.fp-sub {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 24px;
 }
 
-[data-testid="stMetric"] {
-    background: #ffffff;
-    border: 1px solid #d0d7de;
-    border-radius: 12px;
-    padding: 14px 16px;
-    transition: all 0.3s ease;
-}
-[data-testid="stMetric"]:hover {
-    border-color: #0969da;
-    box-shadow: 0 2px 8px rgba(9,105,218,0.1);
-}
-[data-testid="stMetricValue"] {
-    color: #0969da !important;
+/* ===========================
+   DIVIDER OVERRIDE
+=========================== */
+hr {
+    border-color: rgba(255,255,255,0.06) !important;
+    margin: 28px 0 !important;
 }
 
+/* ===========================
+   FOOTER
+=========================== */
+.stApp footer, .stCaption {
+    color: #334155 !important;
+}
+
+/* ===========================
+   KEYFRAMES
+=========================== */
 @keyframes fadeSlideDown {
-    from { opacity: 0; transform: translateY(-20px); }
+    from { opacity: 0; transform: translateY(-18px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+
+/* Metric overrides */
+[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 14px 16px;
 }
+[data-testid="stMetricValue"] {
+    color: #6366f1 !important;
+    font-family: 'Syne', sans-serif !important;
+    font-size: 22px !important;
+}
+[data-testid="stMetricLabel"] {
+    color: #64748b !important;
+    font-size: 12px !important;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
 )
 
 # ============================================================
-# 7. DEFINE PAGES FOR NAVIGATION (app.py NOT included)
+# 7. DEFINE PAGES FOR NAVIGATION
 # ============================================================
 products_page = st.Page("pages/products.py", title="Products", icon="🛍️")
 cart_page = st.Page("pages/cart.py", title="Cart", icon="🛒")
@@ -511,7 +680,7 @@ if not st.session_state.logged_in:
         if not st.session_state.admin_login:
             top_left, top_right = st.columns([9, 1])
             with top_right:
-                st.markdown('<div class="staff-btn">', unsafe_allow_html=True)
+                st.markdown('<div class="staff-btn-wrap">', unsafe_allow_html=True)
                 if st.button("🔒 Staff", use_container_width=True):
                     st.session_state.admin_login = True
                     st.rerun()
@@ -526,41 +695,32 @@ if not st.session_state.logged_in:
                 st.markdown(
                     """
                     <div class="admin-gate-card">
-                        <div style="font-size:36px;margin-bottom:12px;">🔐</div>
+                        <span class="admin-lock-icon">🔐</span>
                         <div class="admin-gate-title">Admin Verification Gate</div>
-                        <div style="font-size:12px;color:#57606a;margin-bottom:24px;">Authorised personnel only</div>
+                        <div class="admin-gate-sub">Authorised personnel only</div>
                     </div>
                 """,
                     unsafe_allow_html=True,
                 )
                 st.write("")
-
-                with st.form("admin_gate_form"):
-                    admin_email = st.text_input("Admin Email", key="admin_email_input")
-                    admin_password = st.text_input(
-                        "Admin Password", type="password", key="admin_pass_input"
-                    )
-                    submit_admin = st.form_submit_button(
-                        "🚀 Authenticate", use_container_width=True
-                    )
+                admin_email = st.text_input("Admin Email", key="admin_email_input")
+                admin_password = st.text_input(
+                    "Admin Password", type="password", key="admin_pass_input"
+                )
 
                 c1, c2 = st.columns(2)
                 with c1:
-                    if submit_admin:
-                        import os
-
-                        admin_email_env = os.getenv(
-                            "ADMIN_EMAIL", "adminhere@gmail.com"
-                        )
-                        admin_password_env = os.getenv("ADMIN_PASSWORD", "admin123")
+                    if st.button(
+                        "🚀 Authenticate", use_container_width=True, type="primary"
+                    ):
                         if (
-                            admin_email.strip() == admin_email_env
-                            and admin_password.strip() == admin_password_env
+                            admin_email.strip() == "adminhere@gmail.com"
+                            and admin_password.strip() == "admin123"
                         ):
                             st.session_state.logged_in = True
                             st.session_state.is_admin = True
                             st.session_state.username = "Administrator"
-                            st.session_state.user_email = admin_email.strip()
+                            st.session_state.user_email = "adminhere@gmail.com"
                             st.session_state.login_time = datetime.now()
                             st.success("Welcome back, Administrator ✓")
                             st.rerun()
@@ -577,25 +737,25 @@ if not st.session_state.logged_in:
         col_login, col_info = st.columns([1.1, 1.9], gap="large")
 
         with col_login:
-            st.markdown('<div class="login-card-wrap">', unsafe_allow_html=True)
             st.markdown(
-                '<div class="section-header">Customer Access</div>',
+                """
+                <div class="login-card-wrap">
+                    <div class="section-header">Customer Access</div>
+                """,
                 unsafe_allow_html=True,
             )
 
             login_tab, signup_tab = st.tabs(["🔒 Sign In", "✨ Create Account"])
 
             with login_tab:
-                with st.form("login_form", clear_on_submit=False):
-                    email = st.text_input("Email address", key="login_email")
-                    password = st.text_input(
-                        "Password", type="password", key="login_password"
-                    )
-                    submit_login = st.form_submit_button(
-                        "Login to ShopZone →", use_container_width=True
-                    )
+                email = st.text_input("Email address", key="login_email")
+                password = st.text_input(
+                    "Password", type="password", key="login_password"
+                )
 
-                if submit_login:
+                if st.button(
+                    "Login to ShopZone →", use_container_width=True, type="primary"
+                ):
                     if not email.strip() or not password.strip():
                         st.error("Please fill out all fields.")
                     else:
@@ -625,40 +785,36 @@ if not st.session_state.logged_in:
                     st.rerun()
 
             with signup_tab:
-                with st.form("signup_form", clear_on_submit=False):
-                    name = st.text_input("Full Name", key="signup_name")
-                    signup_email = st.text_input("Email Address", key="signup_email")
-                    signup_phone = st.text_input("Phone Number", key="signup_phone")
-                    signup_password = st.text_input(
-                        "Password", type="password", key="signup_password"
-                    )
-                    submit_signup = st.form_submit_button(
-                        "Register Account", use_container_width=True
-                    )
+                name = st.text_input("Full Name", key="signup_name")
+                signup_email = st.text_input("Email Address", key="signup_email")
+                signup_phone = st.text_input("Phone Number", key="signup_phone")
+                signup_password = st.text_input(
+                    "Password (min 6 chars)", type="password", key="signup_password"
+                )
 
-                if submit_signup:
+                if st.button("Create My Account →", use_container_width=True):
                     if (
                         not name.strip()
                         or not signup_email.strip()
                         or not signup_phone.strip()
                         or not signup_password.strip()
                     ):
-                        st.error("All fields, including Phone Number, are required.")
+                        st.error("All fields are required.")
                     elif len(signup_password) < 6:
                         st.error("Password must be at least 6 characters.")
                     else:
                         success = register_user(
-                            name=name.strip(),
-                            email=signup_email.strip(),
-                            phone=signup_phone.strip(),
-                            password=signup_password.strip(),
+                            name.strip(),
+                            signup_email.strip(),
+                            signup_phone.strip(),
+                            signup_password.strip(),
                         )
                         if success:
                             st.success(
-                                "Registration Successful! Please switch to the Login tab."
+                                "🎉 Account created! Switch to Sign In to log in."
                             )
                         else:
-                            st.error("This email address is already in use.")
+                            st.error("An account with that email already exists.")
 
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -666,13 +822,13 @@ if not st.session_state.logged_in:
             st.markdown(
                 """
                 <h1 style='font-family:"Syne",sans-serif;font-size:clamp(28px,3.5vw,44px);
-                            font-weight:800;color:#24292f;line-height:1.15;
+                            font-weight:800;color:#f1f5f9;line-height:1.15;
                             letter-spacing:-0.5px;margin-bottom:6px;'>
-                    Welcome to<br><span style='background:linear-gradient(90deg,#0969da,#cf222e);
+                    Welcome to<br><span style='background:linear-gradient(90deg,#6366f1,#f4724a);
                     -webkit-background-clip:text;-webkit-text-fill-color:transparent;
                     background-clip:text;'>ShopZone</span>
                 </h1>
-                <p style='color:#57606a;font-size:14px;margin-bottom:20px;'>
+                <p style='color:#475569;font-size:14px;margin-bottom:20px;'>
                     Your premium one-stop marketplace — from daily essentials to the latest tech.
                 </p>
             """,
@@ -707,17 +863,27 @@ if not st.session_state.logged_in:
                 """
                 <div class="perks-grid">
                     <div class="perk-row">
-                        <div style="font-size:18px;">🚚</div>
-                        <div class="perk-text"><strong>Free Shipping</strong> on orders above $50</div>
+                        <span class="perk-icon">🚚</span>
+                        <span class="perk-text"><strong>Free delivery</strong> on orders above ₹999</span>
                     </div>
                     <div class="perk-row">
-                        <div style="font-size:18px;">↩️</div>
-                        <div class="perk-text"><strong>Easy Returns</strong> within 30 days window</div>
+                        <span class="perk-icon">⚡</span>
+                        <span class="perk-text"><strong>Express checkout</strong> — pay in under 30 seconds</span>
                     </div>
                     <div class="perk-row">
-                        <div style="font-size:18px;">🔒</div>
-                        <div class="perk-text"><strong>Secure Payments</strong> protected by AES-256 ledger</div>
+                        <span class="perk-icon">📦</span>
+                        <span class="perk-text"><strong>24×7 support</strong> for every order, every day</span>
                     </div>
+                </div>
+            """,
+                unsafe_allow_html=True,
+            )
+
+            st.markdown(
+                """
+                <div class="offer-banner">
+                    <span class="offer-tag">🎉 Today</span>
+                    <p class="offer-text"><strong>Flat 20% OFF on all Electronics</strong> + free delivery across India. Limited time.</p>
                 </div>
             """,
                 unsafe_allow_html=True,
@@ -725,8 +891,82 @@ if not st.session_state.logged_in:
 
 elif st.session_state.logged_in and st.session_state.is_admin:
     # ADMIN: Show admin dashboard with navigation
-    pg = st.navigation([admin_page], position="sidebar")
-    pg.run()
+    st.markdown(
+        """
+        <div class="admin-hero">
+            <div style="margin-bottom:12px;">
+                <span class="admin-status-dot"></span>
+                <span style="font-size:12px;color:#22c55e;font-weight:600;letter-spacing:1px;">ALL SYSTEMS OPERATIONAL</span>
+            </div>
+            <div class="admin-hero-title">FraudGuard Command Center 🛡️</div>
+            <div class="admin-hero-sub">Real-Time Transaction Integrity &amp; Machine Learning Guardrails Active</div>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    col_left, col_right = st.columns([1.2, 1.8], gap="large")
+
+    with col_right:
+        st.markdown(
+            '<div class="admin-section-header">System Operations</div>',
+            unsafe_allow_html=True,
+        )
+        if st.button(
+            "🛡️ Open Full Admin Dashboard Module",
+            use_container_width=True,
+            type="primary",
+        ):
+            # Use navigation instead of switch_page
+            pg = st.navigation([admin_page], position="sidebar")
+            pg.run()
+
+        st.write("")
+        if st.button("🔴 Terminate Admin Session", use_container_width=True):
+            st.session_state.logged_in = False
+            st.session_state.is_admin = False
+            st.session_state.login_time = None
+            st.session_state.admin_login = False
+            st.session_state.user_email = ""
+            st.rerun()
+
+    st.divider()
+
+    st.markdown(
+        '<div class="admin-section-header">Engine Pipeline Overview</div>',
+        unsafe_allow_html=True,
+    )
+    f1, f2, f3 = st.columns(3)
+    with f1:
+        st.markdown(
+            """
+            <div class="feat-card">
+                <div class="feat-icon">🛡️</div>
+                <div class="feat-title">Risk Isolation</div>
+                <p class="feat-desc">Evaluates location &amp; device data dynamically on every checkout event.</p>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+    with f2:
+        st.markdown(
+            """
+            <div class="feat-card">
+                <div class="feat-icon">🤖</div>
+                <div class="feat-title">ML Inference</div>
+                <p class="feat-desc">Scikit-learn classifier scores fraud probability on each transaction in real time.</p>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+    with f3:
+        st.markdown(
+            """
+            <div class="feat-card">
+                <div class="feat-icon">📊</div>
+                <div class="feat-title">Audit Logger</div>
+                <p class="feat-desc">Every checkout stream is written directly to the encrypted SQLite ledger.</p>
+            </div>""",
+            unsafe_allow_html=True,
+        )
 
 else:
     # NORMAL USER: Show products, cart, payment in sidebar
@@ -734,3 +974,6 @@ else:
         {"Shop": [products_page, cart_page, payment_page]}, position="sidebar"
     )
     pg.run()
+
+st.divider()
+st.caption("© 2026 ShopZone Marketplace • Secure Customer Portal")
