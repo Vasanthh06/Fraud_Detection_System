@@ -577,11 +577,11 @@ if not st.session_state.logged_in:
         col_login, col_info = st.columns([1.1, 1.9], gap="large")
 
         with col_login:
+            st.markdown('<div class="login-card-wrap">', unsafe_allow_html=True)
             st.markdown(
                 '<div class="section-header">Customer Access</div>',
                 unsafe_allow_html=True,
             )
-            st.markdown('<div class="login-card-wrap">', unsafe_allow_html=True)
 
             login_tab, signup_tab = st.tabs(["🔒 Sign In", "✨ Create Account"])
 
