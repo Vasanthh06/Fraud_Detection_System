@@ -1,5 +1,6 @@
 import streamlit as st
 
+# Login check
 if not st.session_state.get("logged_in"):
     st.warning("Please log in first.")
     st.switch_page("app.py")
@@ -13,11 +14,17 @@ if "cart" not in st.session_state:
 total = sum(item["price"] for item in st.session_state.cart)
 count = len(st.session_state.cart)
 
+# ==================================
+# MODERN UI CSS
+# ==================================
 st.markdown(
     """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap');
+
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+
+/* Top Bar */
 .top-bar {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     border-radius: 16px;
@@ -28,7 +35,12 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     align-items: center;
     border: 1px solid rgba(92, 62, 245, 0.2);
 }
-.top-bar-title { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: #fff; }
+.top-bar-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+}
 .top-bar-title span { color: #FFD700; }
 .top-bar-cart {
     background: rgba(92, 62, 245, 0.15);
@@ -39,6 +51,8 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     font-weight: 600;
     font-size: 0.9rem;
 }
+
+/* Filter Bar */
 .filter-bar {
     background: #fff;
     border-radius: 16px;
@@ -47,6 +61,130 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
+
+/* Product Card Container */
+.product-card-container {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+.product-card-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(92, 62, 245, 0.12);
+    border-color: #c4b5fd;
+}
+.product-image-area {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+.product-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 10;
+}
+.badge-sale-bg { background: #ef4444; color: white; }
+.badge-new-bg { background: #10b981; color: white; }
+.product-info-area {
+    padding: 16px 18px 18px;
+}
+.product-category {
+    font-size: 0.7rem;
+    color: #5c3ef5;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+}
+.product-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.3;
+    margin-bottom: 6px;
+    min-height: 2.6em;
+}
+.product-desc {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+.product-rating {
+    font-size: 0.8rem;
+    color: #f59e0b;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.product-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+.price-current {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #5c3ef5;
+}
+.price-old {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    text-decoration: line-through;
+}
+.price-discount {
+    font-size: 0.75rem;
+    color: #ef4444;
+    font-weight: 600;
+    background: #fef2f2;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+.add-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #5c3ef5, #7c3aed) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 10px !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    transition: all 0.2s ease !important;
+}
+.add-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(92, 62, 245, 0.3) !important;
+}
+.view-btn {
+    width: 100%;
+    background: #f3f4f6 !important;
+    color: #4b5563 !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 10px !important;
+    padding: 10px !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+}
+.view-btn:hover {
+    background: #e5e7eb !important;
+}
+
+/* Section headers */
 .cat-header {
     font-family: 'Syne', sans-serif;
     font-size: 1.3rem;
@@ -64,12 +202,16 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     background: linear-gradient(90deg, #e5e7eb, transparent);
     margin-left: 12px;
 }
+
+/* Empty state */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
     color: #9ca3af;
 }
 .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+
+/* Bottom Cart Bar */
 .bottom-cart-wrapper {
     position: fixed;
     bottom: 0;
@@ -102,7 +244,9 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     unsafe_allow_html=True,
 )
 
-# Top bar
+# ==================================
+# TOP BAR
+# ==================================
 st.markdown(
     f"""
 <div class="top-bar">
@@ -113,10 +257,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Logout — FIXED: clears everything
+# ==================================
+# LOGOUT
+# ==================================
 _, col_logout = st.columns([11, 3])
 with col_logout:
-    if st.button("🚪 Logout"):
+    if st.button("🚪 Logout", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.is_admin = False
         st.session_state.login_time = None
@@ -128,20 +274,24 @@ with col_logout:
         st.session_state.payment_success = False
         st.switch_page("app.py")
 
-# Filter bar
+# ==================================
+# SEARCH & FILTER BAR
+# ==================================
 with st.container():
     st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
     f1, f2, f3 = st.columns([3, 2, 1])
     with f1:
         search = st.text_input(
             "🔍 Search",
-            placeholder="Search products...",
+            placeholder="Search iPhone, sofa, rice...",
             label_visibility="collapsed",
             key="search_input",
         )
     with f2:
+        # Placeholder - will be updated after products load
+        cat_options = ["All Categories"]
         selected_cat = st.selectbox(
-            "📂", ["All Categories"], label_visibility="collapsed", key="cat_select"
+            "📂", cat_options, label_visibility="collapsed", key="cat_select"
         )
     with f3:
         sort_by = st.selectbox(
@@ -152,8 +302,11 @@ with st.container():
         )
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ALL PRODUCTS (Complete list)
+# ==================================
+# ALL PRODUCTS (Complete Original List)
+# ==================================
 all_products = [
+    # ---- ELECTRONICS ----
     {
         "name": "Apple iPhone 16 Pro",
         "price": 129999,
@@ -294,6 +447,7 @@ all_products = [
         "category": "Electronics",
         "badge": "",
     },
+    # ---- COMPUTERS ----
     {
         "name": "Gaming Keyboard RGB",
         "price": 4999,
@@ -384,6 +538,7 @@ all_products = [
         "category": "Computers",
         "badge": "",
     },
+    # ---- FASHION ----
     {
         "name": "Men's Slim Fit Suit",
         "price": 8999,
@@ -504,6 +659,7 @@ all_products = [
         "category": "Fashion",
         "badge": "",
     },
+    # ---- FURNITURE ----
     {
         "name": "Ergonomic Office Chair",
         "price": 18999,
@@ -604,6 +760,7 @@ all_products = [
         "category": "Furniture",
         "badge": "",
     },
+    # ---- GROCERIES ----
     {
         "name": "Organic Basmati Rice 5kg",
         "price": 699,
@@ -704,6 +861,7 @@ all_products = [
         "category": "Groceries",
         "badge": "",
     },
+    # ---- MAKEUP ----
     {
         "name": "Matte Lipstick Set 12pc",
         "price": 999,
@@ -804,6 +962,7 @@ all_products = [
         "category": "Makeup",
         "badge": "",
     },
+    # ---- PERFUMES ----
     {
         "name": "Chanel No.5 EDP 100ml",
         "price": 14999,
@@ -884,6 +1043,7 @@ all_products = [
         "category": "Perfumes",
         "badge": "sale",
     },
+    # ---- FACE WASH ----
     {
         "name": "Himalaya Purifying Neem",
         "price": 149,
@@ -964,6 +1124,7 @@ all_products = [
         "category": "Face Wash",
         "badge": "",
     },
+    # ---- HOME ----
     {
         "name": "LED Ceiling Light 36W",
         "price": 1499,
@@ -1064,6 +1225,7 @@ all_products = [
         "category": "Home",
         "badge": "sale",
     },
+    # ---- KITCHEN ----
     {
         "name": "Instant Pot Duo 6Qt",
         "price": 9999,
@@ -1164,6 +1326,7 @@ all_products = [
         "category": "Kitchen",
         "badge": "",
     },
+    # ---- SPORTS ----
     {
         "name": "Yoga Mat Anti-Slip 6mm",
         "price": 799,
@@ -1224,6 +1387,7 @@ all_products = [
         "category": "Sports",
         "badge": "",
     },
+    # ---- BOOKS ----
     {
         "name": "Atomic Habits – James Clear",
         "price": 499,
@@ -1274,6 +1438,7 @@ all_products = [
         "category": "Books",
         "badge": "",
     },
+    # ---- TOYS ----
     {
         "name": "LEGO City Police Set",
         "price": 3999,
@@ -1326,16 +1491,22 @@ all_products = [
     },
 ]
 
-# Clean and filter
+# Clean products
 all_products = [
     p
     for p in all_products
     if isinstance(p, dict)
     and all(k in p for k in ["name", "price", "rating", "desc", "image", "category"])
 ]
+
+# Get actual categories for dropdown
 categories = ["All Categories"] + sorted(list(set(p["category"] for p in all_products)))
 
-# Re-render filter with actual categories
+# ==================================
+# RE-RENDER FILTER BAR WITH REAL CATEGORIES
+# ==================================
+# We need to redraw the filter bar with correct categories
+# Streamlit will use the cached widget values
 st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
 f1, f2, f3 = st.columns([3, 2, 1])
 with f1:
@@ -1343,18 +1514,18 @@ with f1:
         "🔍 Search",
         placeholder="Search products...",
         label_visibility="collapsed",
-        key="search_v2",
+        key="search_input_v2",
     )
 with f2:
     selected_cat = st.selectbox(
-        "📂", categories, label_visibility="collapsed", key="cat_v2"
+        "📂", categories, label_visibility="collapsed", key="cat_select_v2"
     )
 with f3:
     sort_by = st.selectbox(
         "Sort",
         ["Default", "Price: Low→High", "Price: High→Low", "Rating"],
         label_visibility="collapsed",
-        key="sort_v2",
+        key="sort_select_v2",
     )
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1382,17 +1553,77 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Grid renderer
+# ==================================
+# PRODUCT GRID RENDERER (Using st.image for reliability)
+# ==================================
 COLS = 4
 
 
-def show_grid(product_list):
+def render_product_card(product, idx):
+    """Render a single product card using Streamlit native components"""
+    # Badge logic
+    badge_html = ""
+    if product.get("badge") == "sale":
+        discount_pct = (
+            round(
+                ((product["old_price"] - product["price"]) / product["old_price"]) * 100
+            )
+            if product.get("old_price")
+            else 0
+        )
+        badge_html = (
+            f'<div class="product-badge badge-sale-bg">🔥 {discount_pct}% OFF</div>'
+            if discount_pct > 0
+            else '<div class="product-badge badge-sale-bg">SALE</div>'
+        )
+    elif product.get("badge") == "new":
+        badge_html = '<div class="product-badge badge-new-bg">✨ NEW</div>'
+
+    # Price logic
+    old_price_html = (
+        f'<span class="price-old">₹{product["old_price"]:,}</span>'
+        if product.get("old_price")
+        else ""
+    )
+    discount_html = ""
+    if product.get("old_price") and product["old_price"] > product["price"]:
+        pct = round(
+            ((product["old_price"] - product["price"]) / product["old_price"]) * 100
+        )
+        discount_html = f'<span class="price-discount">{pct}% off</span>'
+
+    # Card HTML (info only, image rendered separately via st.image)
+    card_html = f"""
+    <div class="product-card-container">
+        <div class="product-image-area">
+            {badge_html}
+        </div>
+        <div class="product-info-area">
+            <div class="product-category">{product['category']}</div>
+            <div class="product-name">{product['name']}</div>
+            <div class="product-desc">{product['desc']}</div>
+            <div class="product-rating">{'⭐' * int(float(product['rating']))} {product['rating']}</div>
+            <div class="product-price-row">
+                <span class="price-current">₹{product['price']:,}</span>
+                {old_price_html}
+                {discount_html}
+            </div>
+        </div>
+    </div>
+    """
+    return card_html
+
+
+def show_grid_modern(product_list):
+    """Render products in a modern responsive grid using st.image()"""
     for row_start in range(0, len(product_list), COLS):
         row_items = product_list[row_start : row_start + COLS]
         cols = st.columns(COLS, gap="small")
         for col_idx, product in enumerate(row_items):
             with cols[col_idx]:
+                # Use st.container(border=True) for the card frame
                 with st.container(border=True):
+                    # Render image using st.image (reliable)
                     try:
                         st.image(product["image"], use_container_width=True)
                     except:
@@ -1401,6 +1632,7 @@ def show_grid(product_list):
                             use_container_width=True,
                         )
 
+                    # Badge
                     badge = product.get("badge", "")
                     if badge == "sale":
                         st.markdown(
@@ -1413,6 +1645,7 @@ def show_grid(product_list):
                             unsafe_allow_html=True,
                         )
 
+                    # Product info
                     st.markdown(
                         f"<div style='font-size:0.7rem;color:#5c3ef5;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;'>{product['category']}</div>",
                         unsafe_allow_html=True,
@@ -1430,6 +1663,7 @@ def show_grid(product_list):
                         unsafe_allow_html=True,
                     )
 
+                    # Price row
                     price_col1, price_col2 = st.columns([1, 1])
                     with price_col1:
                         st.markdown(
@@ -1443,6 +1677,7 @@ def show_grid(product_list):
                                 unsafe_allow_html=True,
                             )
 
+                    # Buttons
                     btn_col1, btn_col2 = st.columns(2)
                     with btn_col1:
                         btn_key = (
@@ -1458,7 +1693,9 @@ def show_grid(product_list):
                         )
 
 
-# Render by category or search
+# ==================================
+# RENDER BY CATEGORY OR SEARCH RESULTS
+# ==================================
 emoji_map = {
     "Electronics": "📱",
     "Computers": "💻",
@@ -1483,7 +1720,7 @@ if selected_cat == "All Categories" and not search:
             st.markdown(
                 f'<div class="cat-header">{icon} {cat}</div>', unsafe_allow_html=True
             )
-            show_grid(cat_prods)
+            show_grid_modern(cat_prods)
 else:
     if not filtered:
         st.markdown(
@@ -1496,9 +1733,11 @@ else:
             unsafe_allow_html=True,
         )
     else:
-        show_grid(filtered)
+        show_grid_modern(filtered)
 
-# Bottom cart bar
+# ==================================
+# BOTTOM CART BAR
+# ==================================
 if count > 0:
     st.markdown("<div style='height:100px;'></div>", unsafe_allow_html=True)
     st.markdown(
@@ -1512,6 +1751,7 @@ if count > 0:
         unsafe_allow_html=True,
     )
 
+    # Streamlit buttons for functionality
     col1, col2, col3 = st.columns([3, 1, 1])
     with col2:
         if st.button("🗑️ Clear Cart", key="bottom_clear"):
@@ -1520,4 +1760,4 @@ if count > 0:
     with col3:
         if st.button("💳 Checkout", key="bottom_checkout", type="primary"):
             st.session_state.total_amount = total
-            st.switch_page("pages/cart.py")
+            st.switch_page("cart.py")

@@ -8,7 +8,6 @@ from database.db import init_db
 # ============================================================
 init_db()
 
-# Safe to import auth modules
 from database.auth import (
     get_failed_payment_streak,
     login_user,
@@ -31,28 +30,20 @@ st.set_page_config(
 # ============================================================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
-
 if "login_time" not in st.session_state:
     st.session_state.login_time = None
-
 if "admin_login" not in st.session_state:
     st.session_state.admin_login = False
-
 if "cart" not in st.session_state:
     st.session_state.cart = []
-
 if "total_amount" not in st.session_state:
     st.session_state.total_amount = 0
-
 if "username" not in st.session_state:
     st.session_state.username = "User"
-
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
-
 if "show_forgot_password" not in st.session_state:
     st.session_state.show_forgot_password = False
 
@@ -70,46 +61,42 @@ if not st.session_state.logged_in:
     )
 
 # ============================================================
-# 5. SESSION TIMEOUT (1 hour)
+# 5. SESSION TIMEOUT (1 hour) — FIXED: use total_seconds()
 # ============================================================
 if st.session_state.logged_in and st.session_state.login_time:
-    seconds = (datetime.now() - st.session_state.login_time).seconds
-    if seconds > 3600:
+    elapsed = (datetime.now() - st.session_state.login_time).total_seconds()
+    if elapsed > 3600:
         st.session_state.logged_in = False
         st.session_state.is_admin = False
         st.session_state.login_time = None
         st.session_state.admin_login = False
+        st.session_state.cart = []
+        st.session_state.total_amount = 0
+        st.session_state.user_email = ""
         st.warning("Session Expired. Please Login Again.")
         st.stop()
 
 # ============================================================
-# 6. UNIFORM LIGHT THEME CSS
+# 6. CSS — YOUR ORIGINAL UI + ENHANCED BUTTONS
 # ============================================================
 st.markdown(
     """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap');
 
-/* ===========================
-   GLOBAL RESET & BASE
-=========================== */
 *, *::before, *::after { box-sizing: border-box; }
 
 .stApp {
-    background: #f6f8fa; /* Modern Soft light background */
-    color: #24292f;      /* Clean Dark text */
+    background: #f6f8fa;
+    color: #24292f;
     font-family: 'Inter', sans-serif;
 }
 
-/* Remove default streamlit padding */
 .block-container {
     padding-top: 2rem !important;
     padding-bottom: 2rem !important;
 }
 
-/* ===========================
-   ANIMATED BACKGROUND GRID (Soft Light Contrast)
-=========================== */
 .stApp::before {
     content: '';
     position: fixed;
@@ -122,9 +109,6 @@ st.markdown(
     z-index: 0;
 }
 
-/* ===========================
-   HERO BANNER
-=========================== */
 .hero-wrap {
     position: relative;
     text-align: center;
@@ -191,9 +175,6 @@ st.markdown(
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* ===========================
-   SECTION HEADER
-=========================== */
 .section-header {
     font-family: 'Syne', sans-serif;
     font-size: 22px;
@@ -203,9 +184,6 @@ st.markdown(
     letter-spacing: -0.3px;
 }
 
-/* ===========================
-   LOGIN / SIGNUP CARD
-=========================== */
 .login-card-wrap {
     background: #ffffff;
     border: 1px solid #d0d7de;
@@ -215,9 +193,6 @@ st.markdown(
     box-shadow: 0 10px 30px rgba(0,0,0,0.06);
 }
 
-/* ===========================
-   STREAMLIT INPUT OVERRIDES
-=========================== */
 .stTextInput > label {
     color: #57606a !important;
     font-size: 13px !important;
@@ -236,9 +211,6 @@ st.markdown(
     box-shadow: 0 0 0 3px rgba(9,105,218,0.15) !important;
 }
 
-/* ===========================
-   SIDEBAR LIGHT OVERRIDES
-=========================== */
 [data-testid="stSidebar"] {
     background-color: #ffffff !important;
     border-right: 1px solid #d0d7de !important;
@@ -254,9 +226,6 @@ st.markdown(
     font-weight: bold !important;
 }
 
-/* ===========================
-   TABS
-=========================== */
 .stTabs [data-baseweb="tab-list"] {
     background: #f6f8fa !important;
     border-radius: 12px !important;
@@ -276,39 +245,64 @@ st.markdown(
     color: white !important;
 }
 
-/* ===========================
-   BUTTONS
-=========================== */
 .stButton > button {
     width: 100% !important;
     height: 48px !important;
     border-radius: 12px !important;
-    border: 1px solid #d0d7de !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    background: #ffffff !important;
-    color: #24292f !important;
-    transition: all 0.2s ease !important;
-}
-.stButton > button:hover {
-    transform: translateY(-1px) !important;
-    background-color: #f6f8fa !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
-}
-
-/* Redesign active triggers/primary action elements */
-.stButton > button[type="primary"] {
-    background: linear-gradient(135deg, #0969da, #054da7) !important;
-    color: white !important;
     border: none !important;
-}
-.stButton > button[type="primary"]:hover {
-    box-shadow: 0 6px 20px rgba(9,105,218,0.3) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+    cursor: pointer !important;
 }
 
-/* ===========================
-   FEATURE / INFO CARDS
-=========================== */
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #0969da 0%, #054da7 50%, #0969da 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(9,105,218,0.35) !important;
+    background-size: 200% 200% !important;
+    animation: gradientShift 3s ease infinite !important;
+}
+.stButton > button[kind="primary"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(9,105,218,0.5) !important;
+    filter: brightness(1.1) !important;
+}
+.stButton > button[kind="primary"]:active {
+    transform: translateY(0) !important;
+}
+
+.stButton > button[kind="secondary"] {
+    background: #ffffff !important;
+    color: #57606a !important;
+    border: 1px solid #d0d7de !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+.stButton > button[kind="secondary"]:hover {
+    background: #f6f8fa !important;
+    color: #24292f !important;
+    border-color: #0969da !important;
+    box-shadow: 0 4px 12px rgba(9,105,218,0.1) !important;
+    transform: translateY(-1px) !important;
+}
+
+.staff-btn .stButton > button {
+    background: linear-gradient(135deg, #24292f 0%, #1a1f2e 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-size: 12px !important;
+    height: 38px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+}
+.staff-btn .stButton > button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25) !important;
+    filter: brightness(1.2) !important;
+}
+
 .feat-card {
     background: #ffffff;
     border: 1px solid #d0d7de;
@@ -316,6 +310,12 @@ st.markdown(
     padding: 24px 20px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+}
+.feat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    border-color: #0969da;
 }
 .feat-title {
     font-weight: 700;
@@ -328,9 +328,6 @@ st.markdown(
     color: #57606a;
 }
 
-/* ===========================
-   STATS ROW
-=========================== */
 .stats-row {
     display: flex;
     gap: 12px;
@@ -345,6 +342,11 @@ st.markdown(
     border-radius: 14px;
     padding: 16px 12px;
     text-align: center;
+    transition: all 0.3s ease;
+}
+.stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(9,105,218,0.1);
 }
 .stat-num {
     font-family: 'Syne', sans-serif;
@@ -357,9 +359,6 @@ st.markdown(
     color: #57606a;
 }
 
-/* ===========================
-   DELIVERY PERKS BLOCK
-=========================== */
 .perks-grid {
     display: flex;
     flex-direction: column;
@@ -375,13 +374,16 @@ st.markdown(
     border-radius: 12px;
     padding: 12px 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    transition: all 0.3s ease;
+}
+.perk-row:hover {
+    border-color: #0969da;
+    box-shadow: 0 2px 8px rgba(9,105,218,0.08);
+    transform: translateX(4px);
 }
 .perk-text { font-size: 13px; color: #57606a; }
 .perk-text strong { color: #24292f; }
 
-/* ===========================
-   ADMIN GATE CARD
-=========================== */
 .admin-gate-card {
     background: #ffffff;
     border: 1px solid #d0d7de;
@@ -389,6 +391,10 @@ st.markdown(
     padding: 36px 32px;
     text-align: center;
     box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+.admin-gate-card:hover {
+    box-shadow: 0 15px 50px rgba(0,0,0,0.12);
 }
 .admin-gate-title {
     font-family: 'Syne', sans-serif;
@@ -397,9 +403,6 @@ st.markdown(
     color: #24292f;
 }
 
-/* ===========================
-   ADMIN COMMAND CENTER
-=========================== */
 .admin-hero {
     background: linear-gradient(135deg, #ffffff 0%, #f6f8fa 100%);
     border: 1px solid #d0d7de;
@@ -416,9 +419,6 @@ st.markdown(
     color: #24292f;
 }
 
-/* ===========================
-   FORGOT PASSWORD PAGE
-=========================== */
 .fp-card {
     background: #ffffff;
     border: 1px solid #d0d7de;
@@ -433,15 +433,33 @@ st.markdown(
     color: #24292f;
 }
 
-/* Metric overrides */
 [data-testid="stMetric"] {
     background: #ffffff;
     border: 1px solid #d0d7de;
     border-radius: 12px;
     padding: 14px 16px;
+    transition: all 0.3s ease;
+}
+[data-testid="stMetric"]:hover {
+    border-color: #0969da;
+    box-shadow: 0 2px 8px rgba(9,105,218,0.1);
 }
 [data-testid="stMetricValue"] {
     color: #0969da !important;
+}
+
+@keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 </style>
 """,
@@ -449,364 +467,270 @@ st.markdown(
 )
 
 # ============================================================
-# 7. CASE A: ADMIN IS LOGGED IN (FraudGuard Command Center)
+# 7. DEFINE PAGES FOR NAVIGATION (app.py NOT included)
 # ============================================================
-if st.session_state.logged_in and st.session_state.is_admin:
-
-    st.markdown(
-        """
-        <div class="admin-hero">
-            <div style="margin-bottom:12px;">
-                <span class="admin-status-dot"></span>
-                <span style="font-size:12px;color:#22c55e;font-weight:600;letter-spacing:1px;">ALL SYSTEMS OPERATIONAL</span>
-            </div>
-            <div class="admin-hero-title">FraudGuard Command Center 🛡️</div>
-            <div class="admin-hero-sub">Real-Time Transaction Integrity &amp; Machine Learning Guardrails Active</div>
-        </div>
-    """,
-        unsafe_allow_html=True,
-    )
-
-    col_left, col_right = st.columns([1.2, 1.8], gap="large")
-
-    with col_right:
-        st.markdown(
-            '<div class="admin-section-header">System Operations</div>',
-            unsafe_allow_html=True,
-        )
-        if st.button(
-            "🛡️ Open Full Admin Dashboard Module",
-            use_container_width=True,
-            type="primary",
-        ):
-            st.switch_page("pages/admin.py")
-
-        st.write("")
-        if st.button("🔴 Terminate Admin Session", use_container_width=True):
-            st.session_state.logged_in = False
-            st.session_state.is_admin = False
-            st.session_state.login_time = None
-            st.session_state.admin_login = False
-            st.session_state.user_email = ""
-            st.rerun()
-
-    st.divider()
-
-    st.markdown(
-        '<div class="admin-section-header">Engine Pipeline Overview</div>',
-        unsafe_allow_html=True,
-    )
-    f1, f2, f3 = st.columns(3)
-    with f1:
-        st.markdown(
-            """
-            <div class="feat-card">
-                <div class="feat-icon">🛡️</div>
-                <div class="feat-title">Risk Isolation</div>
-                <p class="feat-desc">Evaluates location &amp; device data dynamically on every checkout event.</p>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-    with f2:
-        st.markdown(
-            """
-            <div class="feat-card">
-                <div class="feat-icon">🤖</div>
-                <div class="feat-title">ML Inference</div>
-                <p class="feat-desc">Scikit-learn classifier scores fraud probability on each transaction in real time.</p>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-    with f3:
-        st.markdown(
-            """
-            <div class="feat-card">
-                <div class="feat-icon">📊</div>
-                <div class="feat-title">Audit Logger</div>
-                <p class="feat-desc">Every checkout stream is written directly to the encrypted SQLite ledger.</p>
-            </div>""",
-            unsafe_allow_html=True,
-        )
+products_page = st.Page("pages/products.py", title="Products", icon="🛍️")
+cart_page = st.Page("pages/cart.py", title="Cart", icon="🛒")
+payment_page = st.Page("pages/payment.py", title="Payment", icon="💳")
+admin_page = st.Page("pages/admin.py", title="Admin Dashboard", icon="🛡️")
+forgot_password_page = st.Page(
+    "pages/forgot_password.py", title="Reset Password", icon="🔑"
+)
 
 # ============================================================
-# 8. CASE B: NORMAL USER OR NOT LOGGED IN
+# 8. ROUTING LOGIC
 # ============================================================
-else:
-    # ── Hero Banner ──────────────────────────────────────────
-    st.markdown(
-        """
-        <div class="hero-wrap">
-            <div class="hero-badge">✦ Premium Marketplace</div>
-            <div class="hero-title">Shop<span>Zone</span> 🛍️</div>
-            <div class="hero-subtitle">Thousands of products. Fast delivery. A checkout that just works.</div>
-            <div class="hero-pills">
-                <span class="hero-pill">✔ Electronics</span>
-                <span class="hero-pill">✔ Fashion</span>
-                <span class="hero-pill">✔ Home Decor</span>
-                <span class="hero-pill">✔ Books</span>
-                <span class="hero-pill">✔ Accessories</span>
-            </div>
-        </div>
-    """,
-        unsafe_allow_html=True,
-    )
-
-    # ── Staff Login (top-right ghost button) ─────────────────
-    if not st.session_state.admin_login:
-        top_left, top_right = st.columns([9, 1])
-        with top_right:
-            st.markdown('<div class="staff-btn-wrap">', unsafe_allow_html=True)
-            if st.button("🔒 Staff", use_container_width=True):
-                st.session_state.admin_login = True
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
-
-    # ── Admin Verification Gate ───────────────────────────────
-    if not st.session_state.logged_in and st.session_state.admin_login:
-        st.markdown("<br>", unsafe_allow_html=True)
-        left, center, right = st.columns([2, 1.4, 2])
-
-        with center:
-            st.markdown(
-                """
-                <div class="admin-gate-card">
-                    <span class="admin-lock-icon">🔐</span>
-                    <div class="admin-gate-title">Admin Verification Gate</div>
-                    <div class="admin-gate-sub">Authorised personnel only</div>
+if not st.session_state.logged_in:
+    # NOT LOGGED IN: Show login form
+    if st.session_state.show_forgot_password:
+        # Show forgot password in navigation (hidden sidebar)
+        pg = st.navigation([forgot_password_page], position="hidden")
+        pg.run()
+    else:
+        # Show login form directly (no navigation)
+        # Hero Banner
+        st.markdown(
+            """
+            <div class="hero-wrap">
+                <div class="hero-badge">✦ Premium Marketplace</div>
+                <div class="hero-title">Shop<span>Zone</span> 🛍️</div>
+                <div class="hero-subtitle">Thousands of products. Fast delivery. A checkout that just works.</div>
+                <div class="hero-pills">
+                    <span class="hero-pill">✔ Electronics</span>
+                    <span class="hero-pill">✔ Fashion</span>
+                    <span class="hero-pill">✔ Home Decor</span>
+                    <span class="hero-pill">✔ Books</span>
+                    <span class="hero-pill">✔ Accessories</span>
                 </div>
-            """,
+            </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        # Staff Login button
+        if not st.session_state.admin_login:
+            top_left, top_right = st.columns([9, 1])
+            with top_right:
+                st.markdown('<div class="staff-btn">', unsafe_allow_html=True)
+                if st.button("🔒 Staff", use_container_width=True):
+                    st.session_state.admin_login = True
+                    st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+
+        # Admin Verification Gate
+        if not st.session_state.logged_in and st.session_state.admin_login:
+            st.markdown("<br>", unsafe_allow_html=True)
+            left, center, right = st.columns([2, 1.4, 2])
+
+            with center:
+                st.markdown(
+                    """
+                    <div class="admin-gate-card">
+                        <div style="font-size:36px;margin-bottom:12px;">🔐</div>
+                        <div class="admin-gate-title">Admin Verification Gate</div>
+                        <div style="font-size:12px;color:#57606a;margin-bottom:24px;">Authorised personnel only</div>
+                    </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+                st.write("")
+
+                with st.form("admin_gate_form"):
+                    admin_email = st.text_input("Admin Email", key="admin_email_input")
+                    admin_password = st.text_input(
+                        "Admin Password", type="password", key="admin_pass_input"
+                    )
+                    submit_admin = st.form_submit_button(
+                        "🚀 Authenticate", use_container_width=True
+                    )
+
+                c1, c2 = st.columns(2)
+                with c1:
+                    if submit_admin:
+                        import os
+
+                        admin_email_env = os.getenv(
+                            "ADMIN_EMAIL", "adminhere@gmail.com"
+                        )
+                        admin_password_env = os.getenv("ADMIN_PASSWORD", "admin123")
+                        if (
+                            admin_email.strip() == admin_email_env
+                            and admin_password.strip() == admin_password_env
+                        ):
+                            st.session_state.logged_in = True
+                            st.session_state.is_admin = True
+                            st.session_state.username = "Administrator"
+                            st.session_state.user_email = admin_email.strip()
+                            st.session_state.login_time = datetime.now()
+                            st.success("Welcome back, Administrator ✓")
+                            st.rerun()
+                        else:
+                            st.error("Invalid administrative credentials.")
+                with c2:
+                    if st.button("⬅ Back", use_container_width=True):
+                        st.session_state.admin_login = False
+                        st.rerun()
+
+            st.stop()
+
+        # Main Login + Info Layout
+        col_login, col_info = st.columns([1.1, 1.9], gap="large")
+
+        with col_login:
+            st.markdown(
+                '<div class="section-header">Customer Access</div>',
                 unsafe_allow_html=True,
             )
-            st.write("")
+            st.markdown('<div class="login-card-wrap">', unsafe_allow_html=True)
 
-            # Wrapped Admin Credentials in a form
-            with st.form("admin_gate_form"):
-                admin_email = st.text_input("Admin Email", key="admin_email_input")
-                admin_password = st.text_input(
-                    "Admin Password", type="password", key="admin_pass_input"
-                )
-                # FIX: Fixed the typo 'st.st.form_submit_button' down to 'st.form_submit_button'
-                submit_admin = st.form_submit_button(
-                    "🚀 Authenticate", use_container_width=True
-                )
+            login_tab, signup_tab = st.tabs(["🔒 Sign In", "✨ Create Account"])
 
-            c1, c2 = st.columns(2)
-            with c1:
-                if submit_admin:
-                    if (
-                        admin_email.strip() == "adminhere@gmail.com"
-                        and admin_password.strip() == "admin123"
-                    ):
-                        st.session_state.logged_in = True
-                        st.session_state.is_admin = True
-                        st.session_state.username = "Administrator"
-                        st.session_state.user_email = "adminhere@gmail.com"
-                        st.session_state.login_time = datetime.now()
-                        st.success("Welcome back, Administrator ✓")
-                        st.rerun()
+            with login_tab:
+                with st.form("login_form", clear_on_submit=False):
+                    email = st.text_input("Email address", key="login_email")
+                    password = st.text_input(
+                        "Password", type="password", key="login_password"
+                    )
+                    submit_login = st.form_submit_button(
+                        "Login to ShopZone →", use_container_width=True
+                    )
+
+                if submit_login:
+                    if not email.strip() or not password.strip():
+                        st.error("Please fill out all fields.")
                     else:
-                        st.error("Invalid administrative credentials.")
-            with c2:
-                if st.button("⬅ Back", use_container_width=True):
-                    st.session_state.admin_login = False
+                        user_email_clean = email.strip()
+                        if get_failed_payment_streak(user_email_clean) >= 3:
+                            st.error(
+                                "🚨 Account temporarily suspended. Contact support."
+                            )
+                        else:
+                            user = login_user(user_email_clean, password.strip())
+                            if user:
+                                st.session_state.logged_in = True
+                                st.session_state.is_admin = False
+                                st.session_state.user_email = user_email_clean
+                                st.session_state.username = user_email_clean.split("@")[
+                                    0
+                                ].capitalize()
+                                st.session_state.login_time = datetime.now()
+                                st.success("Login successful!")
+                                st.rerun()
+                            else:
+                                st.error("Incorrect email or password.")
+
+                st.write("")
+                if st.button("Forgot password?", use_container_width=True):
+                    st.session_state.show_forgot_password = True
                     st.rerun()
 
-        # Stop rendering the rest of the page while gate is open
-        st.stop()
+            with signup_tab:
+                with st.form("signup_form", clear_on_submit=False):
+                    name = st.text_input("Full Name", key="signup_name")
+                    signup_email = st.text_input("Email Address", key="signup_email")
+                    signup_phone = st.text_input("Phone Number", key="signup_phone")
+                    signup_password = st.text_input(
+                        "Password", type="password", key="signup_password"
+                    )
+                    submit_signup = st.form_submit_button(
+                        "Register Account", use_container_width=True
+                    )
 
-    # ── Forgot Password ───────────────────────────────────────
-    if st.session_state.show_forgot_password:
-        st.markdown("<br>", unsafe_allow_html=True)
-        _, center, _ = st.columns([1, 2, 1])
-        with center:
+                if submit_signup:
+                    if (
+                        not name.strip()
+                        or not signup_email.strip()
+                        or not signup_phone.strip()
+                        or not signup_password.strip()
+                    ):
+                        st.error("All fields, including Phone Number, are required.")
+                    elif len(signup_password) < 6:
+                        st.error("Password must be at least 6 characters.")
+                    else:
+                        success = register_user(
+                            name=name.strip(),
+                            email=signup_email.strip(),
+                            phone=signup_phone.strip(),
+                            password=signup_password.strip(),
+                        )
+                        if success:
+                            st.success(
+                                "Registration Successful! Please switch to the Login tab."
+                            )
+                        else:
+                            st.error("This email address is already in use.")
+
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with col_info:
             st.markdown(
                 """
-                <div class="fp-card">
-                    <div class="fp-title">🔑 Reset Password</div>
-                    <div class="fp-sub">Enter your registered email and choose a new password.</div>
+                <h1 style='font-family:"Syne",sans-serif;font-size:clamp(28px,3.5vw,44px);
+                            font-weight:800;color:#24292f;line-height:1.15;
+                            letter-spacing:-0.5px;margin-bottom:6px;'>
+                    Welcome to<br><span style='background:linear-gradient(90deg,#0969da,#cf222e);
+                    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                    background-clip:text;'>ShopZone</span>
+                </h1>
+                <p style='color:#57606a;font-size:14px;margin-bottom:20px;'>
+                    Your premium one-stop marketplace — from daily essentials to the latest tech.
+                </p>
+            """,
+                unsafe_allow_html=True,
+            )
+
+            st.markdown(
+                """
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-num">1K+</div>
+                        <div class="stat-label">Products</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-num">5K+</div>
+                        <div class="stat-label">Customers</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-num">3.5K</div>
+                        <div class="stat-label">Orders</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-num">4.8★</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
                 </div>
             """,
                 unsafe_allow_html=True,
             )
-            st.write("")
 
-            with st.form("forgot_password_form"):
-                email = st.text_input("Registered Email")
-                new_password = st.text_input("New Password", type="password")
-                confirm_password = st.text_input("Confirm Password", type="password")
-                submit_fp = st.form_submit_button(
-                    "Reset Password", use_container_width=True
-                )
-
-            if submit_fp:
-                if not email or not new_password or not confirm_password:
-                    st.error("Please fill all fields.")
-                elif new_password != confirm_password:
-                    st.error("Passwords do not match.")
-                elif len(new_password) < 6:
-                    st.error("Password must be at least 6 characters.")
-                else:
-                    success = reset_password(email, new_password)
-                    if success:
-                        st.success(
-                            "✅ Password reset successfully! You can now log in."
-                        )
-                    else:
-                        st.error("❌ No account found with that email.")
-
-            st.write("")
-            if st.button("⬅ Back to Login", use_container_width=True):
-                st.session_state.show_forgot_password = False
-                st.rerun()
-
-        st.stop()
-
-    # ── Main Login + Info Layout ──────────────────────────────
-    col_login, col_info = st.columns([1.1, 1.9], gap="large")
-
-    # LEFT — Login / Signup card
-    with col_login:
-        st.markdown(
-            '<div class="section-header">Customer Access</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown('<div class="login-card-wrap">', unsafe_allow_html=True)
-
-        login_tab, signup_tab = st.tabs(["🔒 Sign In", "✨ Create Account"])
-
-        with login_tab:
-            with st.form("login_form", clear_on_submit=False):
-                email = st.text_input("Email address", key="login_email")
-                password = st.text_input(
-                    "Password", type="password", key="login_password"
-                )
-                submit_login = st.form_submit_button(
-                    "Login to ShopZone →", use_container_width=True
-                )
-
-            if submit_login:
-                if not email.strip() or not password.strip():
-                    st.error("Please fill out all fields.")
-                else:
-                    user_email_clean = email.strip()
-                    if get_failed_payment_streak(user_email_clean) >= 3:
-                        st.error("🚨 Account temporarily suspended. Contact support.")
-                    else:
-                        user = login_user(user_email_clean, password.strip())
-                        if user:
-                            st.session_state.logged_in = True
-                            st.session_state.is_admin = False
-                            st.session_state.user_email = user_email_clean
-                            st.session_state.username = user_email_clean.split("@")[
-                                0
-                            ].capitalize()
-                            st.session_state.login_time = datetime.now()
-                            st.success("Login successful!")
-                            st.switch_page("pages/products.py")
-                        else:
-                            st.error("Incorrect email or password.")
-
-            st.write("")
-            if st.button("Forgot password?", use_container_width=True):
-                st.session_state.show_forgot_password = True
-                st.rerun()
-
-        with signup_tab:
-            with st.form("signup_form", clear_on_submit=False):
-                name = st.text_input("Full Name", key="signup_name")
-                signup_email = st.text_input("Email Address", key="signup_email")
-                signup_phone = st.text_input("Phone Number", key="signup_phone")
-                signup_password = st.text_input(
-                    "Password", type="password", key="signup_password"
-                )
-                submit_signup = st.form_submit_button(
-                    "Register Account", use_container_width=True
-                )
-
-            if submit_signup:
-                if (
-                    not name.strip()
-                    or not signup_email.strip()
-                    or not signup_phone.strip()
-                    or not signup_password.strip()
-                ):
-                    st.error("All fields, including Phone Number, are required.")
-                elif len(signup_password) < 6:
-                    st.error("Password must be at least 6 characters.")
-                else:
-                    success = register_user(
-                        name=name.strip(),
-                        email=signup_email.strip(),
-                        phone=signup_phone.strip(),
-                        password=signup_password.strip(),
-                    )
-                    if success:
-                        st.success(
-                            "Registration Successful! Please switch to the Login tab."
-                        )
-                    else:
-                        st.error("This email address is already in use.")
-
-    # RIGHT — Shop info
-    with col_info:
-        st.markdown(
-            """
-            <h1 style='font-family:"Syne",sans-serif;font-size:clamp(28px,3.5vw,44px);
-                        font-weight:800;color:#24292f;line-height:1.15;
-                        letter-spacing:-0.5px;margin-bottom:6px;'>
-                Welcome to<br><span style='background:linear-gradient(90deg,#0969da,#cf222e);
-                -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-                background-clip:text;'>ShopZone</span>
-            </h1>
-            <p style='color:#57606a;font-size:14px;margin-bottom:20px;'>
-                Your premium one-stop marketplace — from daily essentials to the latest tech.
-            </p>
-        """,
-            unsafe_allow_html=True,
-        )
-
-        # Stats
-        st.markdown(
-            """
-            <div class="stats-row">
-                <div class="stat-box">
-                    <div class="stat-num">1K+</div>
-                    <div class="stat-label">Products</div>
+            st.markdown(
+                """
+                <div class="perks-grid">
+                    <div class="perk-row">
+                        <div style="font-size:18px;">🚚</div>
+                        <div class="perk-text"><strong>Free Shipping</strong> on orders above $50</div>
+                    </div>
+                    <div class="perk-row">
+                        <div style="font-size:18px;">↩️</div>
+                        <div class="perk-text"><strong>Easy Returns</strong> within 30 days window</div>
+                    </div>
+                    <div class="perk-row">
+                        <div style="font-size:18px;">🔒</div>
+                        <div class="perk-text"><strong>Secure Payments</strong> protected by AES-256 ledger</div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-num">5K+</div>
-                    <div class="stat-label">Customers</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-num">3.5K</div>
-                    <div class="stat-label">Orders</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-num">4.8★</div>
-                    <div class="stat-label">Rating</div>
-                </div>
-            </div>
-        """,
-            unsafe_allow_html=True,
-        )
+            """,
+                unsafe_allow_html=True,
+            )
 
-        # Perks
-        st.markdown(
-            """
-            <div class="perks-grid">
-                <div class="perk-row">
-                    <div class="perk-icon">🚚</div>
-                    <div class="perk-text"><strong>Free Shipping</strong> on orders above $50</div>
-                </div>
-                <div class="perk-row">
-                    <div class="perk-icon">↩️</div>
-                    <div class="perk-text"><strong>Easy Returns</strong> within 30 days window</div>
-                </div>
-                <div class="perk-row">
-                    <div class="perk-icon">🔒</div>
-                    <div class="perk-text"><strong>Secure Payments</strong> protected by AES-256 ledger</div>
-                </div>
-            </div>
-        """,
-            unsafe_allow_html=True,
-        )
+elif st.session_state.logged_in and st.session_state.is_admin:
+    # ADMIN: Show admin dashboard with navigation
+    pg = st.navigation([admin_page], position="sidebar")
+    pg.run()
+
+else:
+    # NORMAL USER: Show products, cart, payment in sidebar
+    pg = st.navigation(
+        {"Shop": [products_page, cart_page, payment_page]}, position="sidebar"
+    )
+    pg.run()

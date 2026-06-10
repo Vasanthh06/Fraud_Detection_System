@@ -22,29 +22,18 @@ X["Amount"] = scaler.fit_transform(X[["Amount"]])
 
 # Train Test Split
 X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.2,
-    random_state=42,
-    stratify=y
+    X, y, test_size=0.2, random_state=42, stratify=y
 )
 
 print("Applying SMOTE...")
 
 smote = SMOTE(random_state=42)
 
-X_train_smote, y_train_smote = smote.fit_resample(
-    X_train,
-    y_train
-)
+X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
 
 print("Training Random Forest Model...")
 
-model = RandomForestClassifier(
-    n_estimators=100,
-    random_state=42,
-    n_jobs=-1
-)
+model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
 
 model.fit(X_train_smote, y_train_smote)
 

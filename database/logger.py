@@ -1,10 +1,12 @@
 import sqlite3
+from database.db import DB_PATH
+
 
 def save_transaction(
     transaction_id,
     customer_name,
     product_name,
-    card_number,
+    card_masked,
     amount,
     country,
     device_type,
@@ -12,44 +14,35 @@ def save_transaction(
     failed_attempts,
     risk_score,
     fraud_reason,
-    status
+    status,
 ):
-
-    conn = sqlite3.connect("database/fraud.db")
-
+    """Save a transaction to the database."""
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    cursor.execute("""
-    INSERT INTO transactions(
-        transaction_id,
-        customer_name,
-        product_name,
-        card_number,
-        amount,
-        country,
-        device_type,
-        transaction_hour,
-        failed_attempts,
-        risk_score,
-        fraud_reason,
-        status
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    cursor.execute(
+        """
+        INSERT INTO transactions
+        (transaction_id, customer_name, product_name, card_masked, amount,
+         country, device_type, transaction_hour, failed_attempts,
+         risk_score, fraud_reason, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """,
-    (
-        transaction_id,
-        customer_name,
-        product_name,
-        card_number,
-        amount,
-        country,
-        device_type,
-        transaction_hour,
-        failed_attempts,
-        risk_score,
-        fraud_reason,
-        status
-    ))
+        (
+            transaction_id,
+            customer_name,
+            product_name,
+            card_masked,
+            amount,
+            country,
+            device_type,
+            transaction_hour,
+            failed_attempts,
+            risk_score,
+            fraud_reason,
+            status,
+        ),
+    )
 
     conn.commit()
     conn.close()

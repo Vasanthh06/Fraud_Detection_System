@@ -8,3 +8,44 @@ dataset/archive.zip
 fraud.db
 database/fraud.db
 venv/
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Streamlit cache
+.streamlit/
+
+# Database files (optional - don't push if contains sensitive data)
+# fraud.db
+
+# Jupyter notebooks cache
+.ipynb_checkpoints/
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dataset (if large)
+dataset/
+dataset.zip
+
+# Models (if large)
+models/
+*.pkl
+*.h5
+*.joblib
