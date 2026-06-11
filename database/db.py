@@ -77,3 +77,8 @@ verify_db()
 if __name__ == "__main__":
     init_db()
     print(f"Database initialized at: {DB_PATH}")
+try:
+    cursor.execute("ALTER TABLE users ADD COLUMN phone TEXT;")
+    conn.commit()
+except sqlite3.OperationalError:
+    pass  # Column already exists

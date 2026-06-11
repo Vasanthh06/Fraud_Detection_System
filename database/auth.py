@@ -1,15 +1,17 @@
+import os
 import sqlite3
 import bcrypt
-import os
 from database.db import DB_PATH, init_db
 
 # ============================================================
-# ADMIN CONFIG — FIXED: Uses env vars with bcrypt
+# ADMIN CONFIG — FIXED: Hardcoded static fallback hash string
 # ============================================================
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "adminhere@gmail.com")
-ADMIN_PASSWORD_HASH = os.getenv(
-    "ADMIN_PASSWORD_HASH", bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
-)
+
+# "admin123" pre-hashed with a static salt so it matches consistently
+DEFAULT_ADMIN_HASH = "$2b$12$K7Y7m8kX9XzXp7K6vE7OeeGj6fG2O8B9Z1yK5YvM3h7mR1Z6z6v2O"
+
+ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", DEFAULT_ADMIN_HASH)
 
 
 def get_connection():
@@ -97,7 +99,8 @@ def reset_password(identifier, new_password):
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT id FROM users WHERE email = ? OR phone = ?", (identifier, identifier)
+        "SELECT id FROM users WHERE email = ? OR phone = ?",
+        (identifier, identifier),
     )
     user = cursor.fetchone()
 
