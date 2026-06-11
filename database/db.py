@@ -1,5 +1,5 @@
-import sqlite3
 import os
+import sqlite3
 
 # Use absolute path based on this file's location
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -47,7 +47,10 @@ def init_db():
 
 
 def verify_db():
-    """Verify database exists and has required tables. Auto-creates if missing."""
+    """Verify database exists and has required tables.
+
+    Auto-creates if missing, and safely patches existing schemas.
+    """
     if not os.path.exists(DB_PATH):
         print(f"[DB VERIFY] Database not found at {DB_PATH}, initializing...")
         init_db()
@@ -56,15 +59,29 @@ def verify_db():
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+
+        # Check if transactions table exists
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='transactions'"
         )
         result = cursor.fetchone()
-        conn.close()
+
         if not result:
             print("[DB VERIFY] Transactions table missing, re-initializing...")
+            conn.close()
             init_db()
             return False
+
+        # --- SAFE MIGRATION LOGIC INSIDE AN OPEN CONNECTION ---
+        # This fixes older versions of shopzone.db if they are missing the phone column
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN phone TEXT;")
+            conn.commit()
+            print("[DB MIGRATION] Safely added 'phone' column to users table.")
+        except sqlite3.OperationalError:
+            pass  # Column already exists, safe to ignore
+
+        conn.close()
         return True
     except Exception as e:
         print(f"[DB VERIFY] Error: {e}")
@@ -77,8 +94,3 @@ verify_db()
 if __name__ == "__main__":
     init_db()
     print(f"Database initialized at: {DB_PATH}")
-try:
-    cursor.execute("ALTER TABLE users ADD COLUMN phone TEXT;")
-    conn.commit()
-except sqlite3.OperationalError:
-    pass  # Column already exists
