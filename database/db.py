@@ -1,16 +1,13 @@
 import sqlite3
 import os
 
+# Use absolute path based on this file's location
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "shopzone.db")
 
 
 def init_db():
     """Initialize the database with all required tables."""
-    # Remove old database if it exists to recreate with new schema
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -46,7 +43,36 @@ def init_db():
 
     conn.commit()
     conn.close()
+    print(f"[DB INIT] Database initialized at: {DB_PATH}")
 
+
+def verify_db():
+    """Verify database exists and has required tables. Auto-creates if missing."""
+    if not os.path.exists(DB_PATH):
+        print(f"[DB VERIFY] Database not found at {DB_PATH}, initializing...")
+        init_db()
+        return False
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='transactions'"
+        )
+        result = cursor.fetchone()
+        conn.close()
+        if not result:
+            print("[DB VERIFY] Transactions table missing, re-initializing...")
+            init_db()
+            return False
+        return True
+    except Exception as e:
+        print(f"[DB VERIFY] Error: {e}")
+        return False
+
+
+# Auto-init on import
+verify_db()
 
 if __name__ == "__main__":
     init_db()

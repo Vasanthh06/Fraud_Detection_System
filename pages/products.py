@@ -1,11 +1,10 @@
 import streamlit as st
 
+st.set_page_config(page_title="ShopZone", page_icon="🛍️", layout="wide")
+
 if not st.session_state.get("logged_in"):
     st.warning("Please log in first.")
-    st.switch_page("app.py")
     st.stop()
-
-st.set_page_config(page_title="ShopZone", page_icon="🛍️", layout="wide")
 
 if "cart" not in st.session_state:
     st.session_state.cart = []
@@ -18,40 +17,73 @@ st.markdown(
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+
+.stApp {
+    background: #0d1117;
+}
+
 .top-bar {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: linear-gradient(135deg, #1a1f2e 0%, #161b2a 100%);
     border-radius: 16px;
     padding: 20px 28px;
     margin-bottom: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid rgba(92, 62, 245, 0.2);
+    border: 1px solid rgba(99,102,241,0.2);
 }
-.top-bar-title { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: #fff; }
+.top-bar-title { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: #f1f5f9; }
 .top-bar-title span { color: #FFD700; }
 .top-bar-cart {
-    background: rgba(92, 62, 245, 0.15);
-    border: 1px solid rgba(92, 62, 245, 0.3);
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.3);
     border-radius: 12px;
     padding: 10px 20px;
-    color: #fff;
+    color: #f1f5f9;
     font-weight: 600;
     font-size: 0.9rem;
 }
+
 .filter-bar {
-    background: #fff;
+    background: #161b2a;
     border-radius: 16px;
     padding: 20px 24px;
     margin-bottom: 24px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    border: 1px solid rgba(99,102,241,0.18);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
+
+.stTextInput > label {
+    color: #e2e8f0 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+}
+.stTextInput input {
+    background: #0f172a !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+    border-radius: 12px !important;
+    color: #f1f5f9 !important;
+    font-size: 15px !important;
+}
+.stTextInput input::placeholder {
+    color: #64748b !important;
+}
+
+.stSelectbox > div > div {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+    border-radius: 12px !important;
+}
+.stSelectbox > label {
+    color: #e2e8f0 !important;
+}
+
 .cat-header {
     font-family: 'Syne', sans-serif;
     font-size: 1.3rem;
     font-weight: 800;
-    color: #1a1a2e;
+    color: #f1f5f9;
     margin: 32px 0 16px;
     display: flex;
     align-items: center;
@@ -61,13 +93,13 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     content: '';
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, #e5e7eb, transparent);
+    background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent);
     margin-left: 12px;
 }
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: #9ca3af;
+    color: #94a3b8;
 }
 .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
 .bottom-cart-wrapper {
@@ -75,11 +107,11 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border-top: 1px solid rgba(92, 62, 245, 0.3);
+    background: linear-gradient(135deg, #1a1f2e 0%, #161b2a 100%);
+    border-top: 1px solid rgba(99,102,241,0.3);
     padding: 16px 24px;
     z-index: 1000;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
 }
 .bottom-cart-inner {
     max-width: 1200px;
@@ -89,7 +121,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     align-items: center;
 }
 .bottom-cart-text {
-    color: #fff;
+    color: #f1f5f9;
     font-weight: 600;
     font-size: 1rem;
 }
@@ -97,24 +129,42 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     color: #FFD700;
     font-weight: 800;
 }
+
+.stContainer p, .stContainer div {
+    color: #e2e8f0 !important;
+}
 </style>
 """,
     unsafe_allow_html=True,
 )
 
 # Top bar
+cart_count = len(st.session_state.cart)
+cart_total = sum(item["price"] for item in st.session_state.cart)
+
 st.markdown(
     f"""
 <div class="top-bar">
     <div class="top-bar-title">Shop<span>Zone</span> 🛍️</div>
-    <div class="top-bar-cart">🛒 {count} items · ₹{total:,}</div>
+    <div class="top-bar-cart">
+        🛒 {cart_count} items · ₹{cart_total:,}
+    </div>
 </div>
 """,
     unsafe_allow_html=True,
 )
 
-# Logout — FIXED: clears everything
-_, col_logout = st.columns([11, 3])
+# ─── Cart button + Logout ───
+col_space, col_cart, col_logout = st.columns([8, 2, 2])
+
+with col_cart:
+    if st.button(
+        f"🛒 Cart ({len(st.session_state.cart)})",
+        use_container_width=True,
+        key="goto_cart",
+    ):
+        st.switch_page("pages/cart.py")
+
 with col_logout:
     if st.button("🚪 Logout"):
         st.session_state.logged_in = False
@@ -126,31 +176,7 @@ with col_logout:
         st.session_state.user_email = ""
         st.session_state.username = "User"
         st.session_state.payment_success = False
-        st.switch_page("app.py")
-
-# Filter bar
-with st.container():
-    st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
-    f1, f2, f3 = st.columns([3, 2, 1])
-    with f1:
-        search = st.text_input(
-            "🔍 Search",
-            placeholder="Search products...",
-            label_visibility="collapsed",
-            key="search_input",
-        )
-    with f2:
-        selected_cat = st.selectbox(
-            "📂", ["All Categories"], label_visibility="collapsed", key="cat_select"
-        )
-    with f3:
-        sort_by = st.selectbox(
-            "Sort",
-            ["Default", "Price: Low→High", "Price: High→Low", "Rating"],
-            label_visibility="collapsed",
-            key="sort_select",
-        )
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.rerun()
 
 # ALL PRODUCTS (Complete list)
 all_products = [
@@ -1335,26 +1361,22 @@ all_products = [
 ]
 categories = ["All Categories"] + sorted(list(set(p["category"] for p in all_products)))
 
-# Re-render filter with actual categories
+# FIXED: Single filter bar only (removed duplicate)
 st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
 f1, f2, f3 = st.columns([3, 2, 1])
 with f1:
     search = st.text_input(
-        "🔍 Search",
-        placeholder="Search products...",
-        label_visibility="collapsed",
-        key="search_v2",
+        "Search products",
+        placeholder="Type to search...",
+        key="search_main",
     )
 with f2:
-    selected_cat = st.selectbox(
-        "📂", categories, label_visibility="collapsed", key="cat_v2"
-    )
+    selected_cat = st.selectbox("Category", categories, key="cat_main")
 with f3:
     sort_by = st.selectbox(
-        "Sort",
+        "Sort by",
         ["Default", "Price: Low→High", "Price: High→Low", "Rating"],
-        label_visibility="collapsed",
-        key="sort_v2",
+        key="sort_main",
     )
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1378,7 +1400,7 @@ elif sort_by == "Rating":
     filtered = sorted(filtered, key=lambda x: float(x["rating"]), reverse=True)
 
 st.markdown(
-    f"<p style='color:#6b7280;font-size:0.9rem;margin-bottom:20px;'>Showing <b style='color:#5c3ef5'>{len(filtered)}</b> products</p>",
+    f"<p style='color:#94a3b8;font-size:0.9rem;margin-bottom:20px;'>Showing <b style='color:#818cf8'>{len(filtered)}</b> products</p>",
     unsafe_allow_html=True,
 )
 
@@ -1414,15 +1436,15 @@ def show_grid(product_list):
                         )
 
                     st.markdown(
-                        f"<div style='font-size:0.7rem;color:#5c3ef5;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;'>{product['category']}</div>",
+                        f"<div style='font-size:0.7rem;color:#818cf8;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;'>{product['category']}</div>",
                         unsafe_allow_html=True,
                     )
                     st.markdown(
-                        f"<div style='font-family:Syne,sans-serif;font-size:0.9rem;font-weight:700;color:#1a1a2e;line-height:1.3;margin-bottom:4px;'>{product['name']}</div>",
+                        f"<div style='font-family:Syne,sans-serif;font-size:0.9rem;font-weight:700;color:#f1f5f9;line-height:1.3;margin-bottom:4px;'>{product['name']}</div>",
                         unsafe_allow_html=True,
                     )
                     st.markdown(
-                        f"<div style='font-size:0.78rem;color:#6b7280;margin-bottom:4px;'>{product['desc']}</div>",
+                        f"<div style='font-size:0.78rem;color:#94a3b8;margin-bottom:4px;'>{product['desc']}</div>",
                         unsafe_allow_html=True,
                     )
                     st.markdown(
@@ -1433,13 +1455,13 @@ def show_grid(product_list):
                     price_col1, price_col2 = st.columns([1, 1])
                     with price_col1:
                         st.markdown(
-                            f"<div style='font-family:Syne,sans-serif;font-size:1.1rem;font-weight:800;color:#5c3ef5;'>₹{product['price']:,}</div>",
+                            f"<div style='font-family:Syne,sans-serif;font-size:1.1rem;font-weight:800;color:#818cf8;'>₹{product['price']:,}</div>",
                             unsafe_allow_html=True,
                         )
                     with price_col2:
                         if product.get("old_price"):
                             st.markdown(
-                                f"<div style='font-size:0.8rem;color:#9ca3af;text-decoration:line-through;'>₹{product['old_price']:,}</div>",
+                                f"<div style='font-size:0.8rem;color:#64748b;text-decoration:line-through;'>₹{product['old_price']:,}</div>",
                                 unsafe_allow_html=True,
                             )
 
@@ -1450,7 +1472,13 @@ def show_grid(product_list):
                         )
                         if st.button("🛒 Add", key=btn_key, use_container_width=True):
                             st.session_state.cart.append(product)
-                            st.toast(f"✅ {product['name']} added to cart!", icon="🛒")
+                            st.session_state.total_amount = sum(
+                                item["price"] for item in st.session_state.cart
+                            )
+                            st.toast(
+                                f"✅ {product['name']} added to cart!",
+                                icon="🛒",
+                            )
                             st.rerun()
                     with btn_col2:
                         st.link_button(
@@ -1490,8 +1518,8 @@ else:
             """
         <div class="empty-state">
             <div class="icon">🔍</div>
-            <div style="font-size:1.2rem;font-weight:700;color:#4b5563;margin-bottom:8px">No products found</div>
-            <div style="color:#9ca3af">Try a different search or category</div>
+            <div style="font-size:1.2rem;font-weight:700;color:#e2e8f0;margin-bottom:8px">No products found</div>
+            <div style="color:#94a3b8">Try a different search or category</div>
         </div>""",
             unsafe_allow_html=True,
         )
@@ -1520,4 +1548,4 @@ if count > 0:
     with col3:
         if st.button("💳 Checkout", key="bottom_checkout", type="primary"):
             st.session_state.total_amount = total
-            st.switch_page("pages/cart.py")
+            st.switch_page("pages/payment.py")
