@@ -24,7 +24,16 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
+# ============================================================
+# 2.5 CRAWLER FALLBACK TEXT
+# ============================================================
+# This invisible/small text ensures scrapers grab a clean description first!
+st.markdown(
+    "<p style='position:absolute; top:-9999px; left:-9999px;'>"
+    "ShopZone Premium Store - Discover thousands of items with rapid fulfillment and secure checkout."
+    "</p>",
+    unsafe_allow_html=True,
+)
 # ============================================================
 # 3. SESSION STATE DEFAULTS
 # ============================================================
