@@ -44,11 +44,13 @@ CARD_SCALER_PATH = MODELS_DIR / "scaler.pkl"
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
 # ---- public base URL (used in email links; set on Render) ----
-APP_URL = os.getenv("APP_URL", "http://localhost:8000").rstrip("/")
+# Updated fallback to your custom domain just in case
+APP_URL = os.getenv("APP_URL", "https://www.fraudetect.site").rstrip("/")
 
 # ---- Resend transactional email (empty key = dev outbox mode) ----
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
-RESEND_FROM = os.getenv("RESEND_FROM", "ShopZone <onboarding@resend.dev>")
+# Updated fallback to your verified custom domain
+RESEND_FROM = os.getenv("RESEND_FROM", "ShopZone <noreply@fraudetect.site>")
 
 # ---- CORS: same-origin app needs no wildcards; extend via env on Render ----
 CORS_ORIGINS = [

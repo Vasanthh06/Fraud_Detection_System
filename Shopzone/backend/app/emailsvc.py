@@ -116,20 +116,18 @@ def _kv(rows: list[tuple[str, str]]) -> str:
 def welcome_email(name: str, email: str) -> tuple[str, str]:
     e = html.escape
     body = f"""
-<p style="font-size:15px;line-height:1.65;margin:0 0 18px">Hi <b>{e(name)}</b>, welcome aboard!
-Your ShopZone account is live and protected by our three-layer fraud shield —
-Luhn validation, an explainable rule engine and a RandomForest scoring model watch
-over every payment you make.</p>
+<p style="font-size:15px;line-height:1.65;margin:0 0 18px">Hi <b>{e(name)}</b>, welcome to the future of secure shopping!</p>
+<p style="font-size:15px;line-height:1.65;margin:0 0 18px">Your ShopZone account is officially active. We combine advanced Machine Learning with real-time rule engines to keep your transactions completely safe.</p>
 {_kv([("Account email", e(email)), ("Member since", datetime.now().strftime("%d %b %Y")), ("Account status", "✅ Active & protected")])}
-<p style="font-size:14px;line-height:1.7;margin:0 0 24px">Here's what you can do right away:</p>
+<p style="font-size:14px;line-height:1.7;margin:0 0 24px">Here is what you can do right now:</p>
 <ul style="margin:0 0 26px;padding-left:20px;font-size:14px;line-height:1.9;color:#334155">
-  <li>Browse 117 products across 13 categories</li>
-  <li>❤ Save favourites to your wishlist</li>
-  <li>Pay by card — every transaction is scored &amp; explained in under a second</li>
-  <li>Track every order and payment attempt from <b>My Orders</b></li>
+  <li>Browse our exclusive collection of products</li>
+  <li>Save your favourite items to your personal wishlist</li>
+  <li>Checkout securely with our AI fraud shield</li>
+  <li>Track all your orders in real-time from your dashboard</li>
 </ul>
 {_btn(APP_URL + '/shop', 'Start shopping →')}
-<p style="font-size:12.5px;color:#94a3b8;margin:26px 0 0">Didn't create this account? Reset the password from the sign-in page or ignore this mail — accounts without a verified first sign-in stay inactive in practice.</p>"""
+<p style="font-size:12.5px;color:#94a3b8;margin:26px 0 0">Didn't create this account? Reset the password from the sign-in page or ignore this mail.</p>"""
     return "Welcome to ShopZone 🎉 — your account is ready", _layout("Welcome to ShopZone 🎉", "Your account is ready — protected by the ShopZone Shield.", body)
 
 
@@ -179,8 +177,9 @@ account was just changed. If this was you, you're all set — use the new passwo
 def reset_link_email(name: str, link: str) -> tuple[str, str]:
     e = html.escape
     body = f"""
-<p style="font-size:15px;line-height:1.65;margin:0 0 18px">Hi <b>{e(name)}</b>, we received a request to reset
-your ShopZone password. Use the secure button below — the link expires in <b>60 minutes</b> and works once.</p>
+<p style="font-size:15px;line-height:1.65;margin:0 0 18px">Hi <b>{e(name)}</b>,</p>
+<p style="font-size:15px;line-height:1.65;margin:0 0 18px">We received a request to reset your password. Click the secure button below to choose a new one.</p>
+<p style="font-size:14px;line-height:1.7;margin:0 0 22px;color:#b91c1c;"><b>Important:</b> This link is highly secure, valid for 60 minutes, and can only be used once.</p>
 <div style="margin:0 0 22px;text-align:center">{_btn(link, 'Choose a new password →')}</div>
 <p style="font-size:12.5px;color:#94a3b8;line-height:1.7;margin:0 0 8px">Button not working? Paste this link in your browser:<br>
 <span style="font-family:monospace;color:#64748b;word-break:break-all">{e(link)}</span></p>
