@@ -24,8 +24,20 @@
       <label class="field"><span>Full name</span><input id="name" required minlength="2" placeholder="Your name" autocomplete="name" /></label>
       <label class="field"><span>Email</span><input id="email" type="email" required placeholder="you@example.com" autocomplete="email" /></label>
       <label class="field"><span>Mobile number</span><div class="phone-group"><span class="phone-isd">🇮🇳 +91</span><input id="phone" required inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel" /></div></label>
-      <label class="field"><span>Password</span><span class="pw-wrap"><input id="password" type="password" required autocomplete="new-password" placeholder="Strong password" /><button class="eye-btn" id="eyePw" type="button"></button></span><span class="pw-check" id="pwcheck"></span></label>
-      <label class="field"><span>Confirm password</span><span class="pw-wrap"><input id="confirm" type="password" required autocomplete="new-password" /><button class="eye-btn" id="eyePw2" type="button"></button></span></label>
+      <label class="field"><span>Password</span><span class="pw-wrap"><div class="password-wrapper">
+  <input id="password" type="password" required autocomplete="new-password" placeholder="Strong password" />
+  <button type="button" class="toggle-password" onclick="togglePassword('password', this)" aria-label="Toggle password visibility">
+    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <svg class="eye-off-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+  </button>
+</div><button class="eye-btn" id="eyePw" type="button"></button></span><span class="pw-check" id="pwcheck"></span></label>
+      <label class="field"><span>Confirm password</span><span class="pw-wrap"><div class="password-wrapper">
+  <input id="confirm" type="password" required autocomplete="new-password" />
+  <button type="button" class="toggle-password" onclick="togglePassword('confirm', this)" aria-label="Toggle password visibility">
+    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <svg class="eye-off-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+  </button>
+</div><button class="eye-btn" id="eyePw2" type="button"></button></span></label>
       <button class="btn btn-primary btn-block" id="go">Create account</button>
       <p class="auth-switch">Already registered? <a href="/login">Sign in</a></p>
     </form>
@@ -76,5 +88,21 @@
       }
     };
   </script>
+<script>
+if (typeof togglePassword !== 'function') {
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const eye = btn.querySelector('.eye-icon');
+    const eyeOff = btn.querySelector('.eye-off-icon');
+    if (input.type === "password") {
+      input.type = "text";
+      eye.style.display = "none"; eyeOff.style.display = "block";
+    } else {
+      input.type = "password";
+      eye.style.display = "block"; eyeOff.style.display = "none";
+    }
+  }
+}
+</script>
 </body>
 </html>

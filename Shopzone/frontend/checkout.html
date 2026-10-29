@@ -69,7 +69,13 @@
           </label>
           <div class="field-row">
             <label class="field"><span>Expiry (MM/YY)</span><input id="cexp" required placeholder="MM/YY" maxlength="5" inputmode="numeric" autocomplete="cc-exp" /></label>
-            <label class="field"><span>CVV</span><input id="ccvv" required type="password" placeholder="•••" maxlength="3" inputmode="numeric" autocomplete="cc-csc" /></label>
+            <label class="field"><span>CVV</span><div class="password-wrapper">
+  <input id="ccvv" required type="password" placeholder="•••" maxlength="3" inputmode="numeric" autocomplete="cc-csc" />
+  <button type="button" class="toggle-password" onclick="togglePassword('ccvv', this)" aria-label="Toggle password visibility">
+    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <svg class="eye-off-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+  </button>
+</div></label>
           </div>
           <button class="btn btn-primary btn-block" id="pay" style="margin-top:6px">Pay ${inr(total)} securely</button>
           <a class="btn btn-ghost btn-block" style="margin-top:10px" href="/cart">← Back to cart</a>
@@ -182,5 +188,21 @@
 
     renderForm().catch(() => { split.innerHTML = '<div class="panel">Start the backend, then refresh.</div>'; });
   </script>
+<script>
+if (typeof togglePassword !== 'function') {
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const eye = btn.querySelector('.eye-icon');
+    const eyeOff = btn.querySelector('.eye-off-icon');
+    if (input.type === "password") {
+      input.type = "text";
+      eye.style.display = "none"; eyeOff.style.display = "block";
+    } else {
+      input.type = "password";
+      eye.style.display = "block"; eyeOff.style.display = "none";
+    }
+  }
+}
+</script>
 </body>
 </html>

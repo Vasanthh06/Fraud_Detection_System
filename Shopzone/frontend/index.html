@@ -109,5 +109,21 @@
       }
     })();
   </script>
+<script>
+if (typeof togglePassword !== 'function') {
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const eye = btn.querySelector('.eye-icon');
+    const eyeOff = btn.querySelector('.eye-off-icon');
+    if (input.type === "password") {
+      input.type = "text";
+      eye.style.display = "none"; eyeOff.style.display = "block";
+    } else {
+      input.type = "password";
+      eye.style.display = "block"; eyeOff.style.display = "none";
+    }
+  }
+}
+</script>
 </body>
 </html>

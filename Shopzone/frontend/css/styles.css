@@ -710,3 +710,48 @@ tbody tr:hover td { background: var(--row-hover); }
 .wish-btn:hover { color: var(--red); transform: scale(1.1); border-color: rgba(239,68,68,.45); }
 .wish-btn.on { color: var(--red); border-color: rgba(239,68,68,.5); }
 .wish-btn.on svg { fill: currentColor; }
+
+/* --- RESPONSIVE FIXES --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+body, html {
+  overflow-x: hidden; /* Prevent horizontal scrolling on mobile */
+}
+.container, .auth-box, .card, .login-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 15px;
+}
+@media (min-width: 768px) {
+  .auth-box, .card, .login-container {
+    max-width: 420px; /* Constrain width on PC */
+    margin: 0 auto;
+  }
+}
+
+/* --- PASSWORD TOGGLE STYLES --- */
+.password-wrapper {
+  position: relative;
+  width: 100%;
+  display: block;
+}
+.password-wrapper input {
+  width: 100%;
+  padding-right: 40px !important; /* Make room for icon */
+}
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.toggle-password:hover { color: #374151; }
