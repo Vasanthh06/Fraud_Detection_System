@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop — ShopZone</title>
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-btn" href="/"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back to home</a>
+    <div class="page-head">
+      <h1>Shop the catalog</h1>
+      <p>117 products across 13 categories — every purchase is protected by the ShopZone Shield.</p>
+    </div>
+
+    <div class="controls">
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" type="search" placeholder="Search products…" autocomplete="off" />
+      </label>
+      <select class="select" id="sort">
+        <option value="default">Sort: Default</option>
+        <option value="low">Price: Low → High</option>
+        <option value="high">Price: High → Low</option>
+        <option value="rating">Rating</option>
+      </select>
+    </div>
+    <div class="chips" id="cats"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" style="display:none"><b>No products match</b>Try a different search or category.</div>
+  </main>
+
+  <script src="/js/api.js?v=2"></script>
+  <script src="/js/store.js?v=2"></script>
+  <script src="/js/ui.js?v=2"></script>
+  <script>
+    mountNav('shop'); mountFooter();
+    let ALL = [], cat = 'All', q = '', sort = 'default', WISH = new Set();
+
+    function render() {
+      let list = ALL.filter((p) => (cat === 'All' || p.category === cat));
+      if (q) {
+        const needle = q.toLowerCase();
+        list = list.filter((p) => (p.name + ' ' + p.desc + ' ' + p.category).toLowerCase().includes(needle));
+      }
+      if (sort === 'low') list = [...list].sort((a, b) => a.price - b.price);
+      if (sort === 'high') list = [...list].sort((a, b) => b.price - a.price);
+      if (sort === 'rating') list = [...list].sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+      const grid = document.getElementById('grid');
+      grid.innerHTML = list.map((p, i) => productCard(p, i)).join('');
+      document.getElementById('empty').style.display = list.length ? 'none' : '';
+      bindAddButtons(grid);
+      bindWishButtons(grid, WISH);
+      initReveal();
+    }
+
+    (async () => {
+      try { ALL = await catalog(); WISH = await loadWishSet(); } catch { return; }
+      const cats = ['All', ...Array.from(new Set(ALL.map((p) => p.category))).sort()];
+      const wanted = new URLSearchParams(location.search).get('cat');
+      if (wanted && cats.includes(wanted)) cat = wanted;
+      const chips = document.getElementById('cats');
+      chips.innerHTML = cats.map((c) => `<button class="chip${c === cat ? ' on' : ''}" data-cat="${c}">${c === 'All' ? 'All Categories' : c}</button>`).join('');
+      chips.querySelectorAll('.chip').forEach((b) => b.onclick = () => {
+        cat = b.dataset.cat;
+        chips.querySelectorAll('.chip').forEach((x) => x.classList.toggle('on', x === b));
+        render();
+      });
+      document.getElementById('q').oninput = (e) => { q = e.target.value.trim(); render(); };
+      document.getElementById('sort').onchange = (e) => { sort = e.target.value; render(); };
+      render();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Desk — ShopZone</title>
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-btn" href="/"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back to home</a>
+    <div class="page-head">
+      <h1>🛡️ Fraud control desk</h1>
+      <p id="mlState">Live transaction intelligence — every gateway verdict, scored and auditable.</p>
+    </div>
+    <div id="content"><div class="empty"><b>Loading desk…</b></div></div>
+
+    <!-- engine documentation (admin-only) -->
+    <section class="sec" style="padding-top:10px">
+      <div class="sec-head">
+        <div>
+          <p class="kicker">ShopZone Shield</p>
+          <h2>Three layers between a card and a criminal</h2>
+        </div>
+      </div>
+      <div class="shield-grid">
+        <div class="shield-card s1">
+          <span class="shield-step">LAYER 01</span>
+          <div class="shield-ico">🔢</div>
+          <h3>Structure + Luhn validation</h3>
+          <p>Every card number is checked for a valid 16-digit layout and passes the Luhn
+             checksum before it ever reaches the model. Bad cards are declined and struck —
+             three strikes suspend the account.</p>
+        </div>
+        <div class="shield-card s2">
+          <span class="shield-step">LAYER 02</span>
+          <div class="shield-ico">📏</div>
+          <h3>Rule engine</h3>
+          <p>Repeated failed attempts (+40), late-night hours (+20), unknown card networks
+             (+30) and high-value orders (+25/+40) accumulate risk points — an explainable
+             baseline that never sleeps.</p>
+        </div>
+        <div class="shield-card s3">
+          <span class="shield-step">LAYER 03</span>
+          <div class="shield-ico">🧠</div>
+          <h3>RandomForest ML model</h3>
+          <p>A scikit-learn RandomForest trained on the transaction dataset scores
+             amount, country, hour and failed attempts. Score ≥ 80 blocks the payment,
+             50–79 flags it suspicious, and every verdict is logged.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" style="padding-top:26px">
+      <div class="sec-head">
+        <div>
+          <p class="kicker">How it works</p>
+          <h2>From browsing to a protected payment</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step"><h4>Create an account</h4><p>Name, email, phone and a bcrypt-hashed password. No OTP, no fuss.</p></div>
+        <div class="step"><h4>Fill your cart</h4><p>Search 117 products across 13 categories, sort by price or rating.</p></div>
+        <div class="step"><h4>Pay by card</h4><p>The gateway validates, scores and decides in under a second — with a full explanation.</p></div>
+        <div class="step"><h4>Stay auditable</h4><p>Every transaction — approved, suspicious or blocked — lands in your history and the admin desk.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/api.js?v=2"></script>
+  <script src="/js/store.js?v=2"></script>
+  <script src="/js/ui.js?v=2"></script>
+  <script>
+    mountNav('admin'); mountFooter();
+    if (!requireAdmin()) { /* redirected */ }
+
+    function bars(items, max) {
+      const m = max || Math.max(1, ...items.map((i) => i.count));
+      return `<div class="bars">${items.map((i) => `
+        <div class="bar-row">
+          <span>${i.label}</span>
+          <span class="track"><i data-w="${Math.round((i.count / m) * 100)}" style="background:${i.color}"></i></span>
+          <b>${i.count}</b>
+        </div>`).join('')}</div>`;
+    }
+
+    function txnTable(rows, withUser) {
+      if (!rows.length) return '<div class="empty" style="padding:30px 0">No transactions yet — place an order to see the engine work.</div>';
+      return `<div class="table-wrap"><table>
+        <thead><tr><th>Txn</th>${withUser ? '<th>Customer</th>' : ''}<th>Products</th><th>Card</th><th>Amount</th><th>Risk</th><th>Tier</th><th>Status</th><th>Reason</th></tr></thead>
+        <tbody>${rows.map((r) => `
+          <tr>
+            <td class="mono">${r.transaction_id}</td>
+            ${withUser ? `<td>${escapeHtml(r.customer_name || '')}</td>` : ''}
+            <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(r.product_name || '')}</td>
+            <td class="mono">${escapeHtml(r.card_masked || '')}</td>
+            <td>${inr(r.amount)}</td>
+            <td class="mono">${Number(r.risk_score || 0).toFixed(1)}%</td>
+            <td><span class="pill ${(r.tier || 'Low').toLowerCase()}">${r.tier || 'Low'}</span></td>
+            <td><span class="pill ${r.status.toLowerCase()}">${r.status}</span></td>
+            <td class="muted" style="max-width:230px">${escapeHtml(r.fraud_reason || '')}</td>
+          </tr>`).join('')}
+        </tbody></table></div>`;
+    }
+
+    async function loadUsers() {
+      try {
+        const u = await API.get('/admin/users');
+        document.getElementById('usersBox').innerHTML = u.users.length ? `
+          <div class="table-wrap"><table>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Location</th><th>Orders</th><th>Wishlist</th><th>Strikes</th><th>Joined</th></tr></thead>
+            <tbody>${u.users.map((r) => `
+              <tr>
+                <td><b>${escapeHtml(r.name)}</b></td>
+                <td class="mono">${escapeHtml(r.email)}</td>
+                <td class="mono">+91 ${escapeHtml(r.phone || '')}</td>
+                <td>${escapeHtml(r.location || '—')}</td>
+                <td class="mono">${r.tx_count}</td>
+                <td class="mono">${r.wish_count}</td>
+                <td class="mono">${r.failed_payment_streak || 0}/3</td>
+                <td class="muted">${(r.created_at || '').slice(0, 16).replace('T', ' ')}</td>
+              </tr>`).join('')}
+            </tbody></table></div>`
+          : '<div class="empty" style="padding:20px 0">No registered shoppers yet.</div>';
+      } catch (e) {
+        document.getElementById('usersBox').innerHTML = `<div class="error-banner">${e.message}</div>`;
+      }
+    }
+
+    (async () => {
+      try {
+        const s = await API.get('/admin/stats');
+        const m = s.metrics;
+        document.getElementById('mlState').innerHTML = s.ml_model_loaded
+          ? '🧠 RandomForest model <b style="color:var(--emerald)">loaded</b> — live transaction intelligence.'
+          : '⚠ ML model not found — running rule-based detection only.';
+        document.getElementById('content').innerHTML = `
+          <div class="metrics">
+            <div class="metric"><span>Transactions</span><b>${m.total_tx}</b></div>
+            <div class="metric green"><span>Success</span><b>${m.success}</b></div>
+            <div class="metric amber"><span>Suspicious</span><b>${m.suspicious}</b></div>
+            <div class="metric red"><span>Fraud</span><b>${m.fraud}</b></div>
+            <div class="metric"><span>Volume</span><b>${inr(m.volume)}</b></div>
+            <div class="metric green"><span>Success rate</span><b>${m.success_rate.toFixed(2)}%</b></div>
+          </div>
+          <div class="charts">
+            <section class="panel"><h3>📊 Transaction categories</h3>${bars(s.categories)}</section>
+            <section class="panel"><h3>📈 Risk score distribution</h3>${bars(s.risk_tiers)}</section>
+          </div>
+          <section class="panel" style="margin-bottom:16px"><h3>🚨 High-risk transactions (score ≥ 80)</h3>${txnTable(s.high_risk, true)}</section>
+          <section class="panel"><h3>🧾 Recent transactions</h3>${txnTable(s.recent, true)}</section>
+          <section class="panel" style="margin-top:16px"><h3>👥 Registered users — full registry</h3><div id="usersBox"><div class="empty" style="padding:20px 0">Loading users…</div></div></section>`;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          document.querySelectorAll('.track i').forEach((i) => { i.style.width = i.dataset.w + '%'; });
+        }));
+        loadUsers();
+      } catch (e) {
+        document.getElementById('content').innerHTML = `<div class="error-banner">${e.message}</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

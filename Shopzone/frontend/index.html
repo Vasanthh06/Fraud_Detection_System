@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1120" />
+  <title>ShopZone — Shop Smart. Pay Safe.</title>
+  <meta name="description" content="ShopZone is a professional e-commerce platform with a built-in machine-learning fraud detection engine for credit and debit card payments." />
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"><div class="hero-grid"></div></div>
+    <div class="hero-in">
+      <div>
+        <span class="hero-badge" data-reveal><span class="dot"></span> AI-PROTECTED CHECKOUT</span>
+        <h1 data-reveal data-d="1">Shop smart.<br /><span class="grad">Pay safe.</span></h1>
+        <p class="hero-sub" data-reveal data-d="2">
+          ShopZone is a full e-commerce platform with a fraud-detection engine built into the
+          payment gateway — every card transaction is validated, scored by a RandomForest model
+          and logged, in real time.
+        </p>
+        <div class="hero-cta" data-reveal data-d="3">
+          <a class="btn btn-primary" href="/shop">Start shopping →</a>
+          <a class="btn btn-ghost" href="/register">Create account</a>
+        </div>
+        <div class="hero-stats" data-reveal data-d="4">
+          <div class="st"><b>117</b><span>Products</span></div>
+          <div class="st"><b>13</b><span>Categories</span></div>
+          <div class="st"><b>3-layer</b><span>Fraud shield</span></div>
+          <div class="st"><b>&lt;1s</b><span>Risk verdict</span></div>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-hidden>
+        <div class="float-card fc-1">
+          <div class="fc-row">
+            <span class="fc-ico sky">💳</span>
+            <div><div class="fc-t">Card validated</div><div class="fc-s">Luhn checksum passed · Visa</div></div>
+          </div>
+        </div>
+        <div class="float-card fc-2">
+          <div class="fc-row">
+            <span class="fc-ico amber">🧠</span>
+            <div><div class="fc-t">RandomForest scoring</div><div class="fc-s">amount · hour · attempts · country</div></div>
+          </div>
+          <div class="fc-meter"><i></i></div>
+          <div class="fc-verdict">Risk 22% · LOW → APPROVED</div>
+        </div>
+        <div class="float-card fc-3">
+          <div class="fc-row">
+            <span class="fc-ico green">✅</span>
+            <div><div class="fc-t">Order placed</div><div class="fc-s">TXN 8f3a2c1d · logged &amp; auditable</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="wrap">
+    <!-- CATEGORIES -->
+    <section class="sec">
+      <div class="sec-head">
+        <div>
+          <p class="kicker">Explore</p>
+          <h2>Shop by category</h2>
+        </div>
+        <a class="link" href="/shop">View full catalog →</a>
+      </div>
+      <div class="cat-grid" id="cats"></div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-band" data-reveal>
+      <h2>Ready to experience a protected checkout?</h2>
+      <p>Register in 30 seconds and try a payment — safe or fraudulent, the engine will show you exactly why.</p>
+      <a class="btn btn-primary" href="/register">Create your account</a>
+    </section>
+  </main>
+
+  <script src="/js/api.js?v=2"></script>
+  <script src="/js/store.js?v=2"></script>
+  <script src="/js/ui.js?v=2"></script>
+  <script>
+    mountNav('home');
+    mountFooter();
+    initReveal();
+    (async () => {
+      try {
+        const list = await catalog();
+        const counts = {};
+        list.forEach((p) => { counts[p.category] = (counts[p.category] || 0) + 1; });
+        const names = Object.keys(counts).sort();
+        const glows = ['var(--emerald)', 'var(--sky)', 'var(--amber)', 'var(--indigo)', 'var(--blue)', 'var(--red)'];
+        document.getElementById('cats').innerHTML = names.map((c, i) => `
+          <a class="cat-tile" href="/shop?cat=${encodeURIComponent(c)}" style="--tile-glow:${glows[i % glows.length]}" data-reveal data-d="${(i % 4) + 1}">
+            <span class="cat-ico">${CAT_EMOJI[c] || '🛍️'}</span>
+            <b>${c}</b><span class="n">${counts[c]} products</span>
+            <span class="go">→</span>
+          </a>`).join('');
+        initReveal();
+      } catch (e) {
+        document.getElementById('cats').innerHTML =
+          '<div class="empty"><b>Catalog unavailable</b>Start the backend, then refresh.</div>';
+      }
+    })();
+  </script>
+</body>
+</html>

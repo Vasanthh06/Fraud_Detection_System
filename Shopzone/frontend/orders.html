@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders — ShopZone</title>
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-btn" href="/shop"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back to shop</a>
+    <div class="page-head">
+      <h1>My orders &amp; payment attempts</h1>
+      <p style="margin-top:6px"><a class="fwd-link" href="/profile">Profile &amp; settings →</a></p>
+      <p>Every gateway decision on your account — approvals, flags and blocks, with the risk score.</p>
+    </div>
+    <div id="content" style="padding-top:16px"><div class="empty"><b>Loading…</b></div></div>
+  </main>
+
+  <script src="/js/api.js?v=2"></script>
+  <script src="/js/store.js?v=2"></script>
+  <script src="/js/ui.js?v=2"></script>
+  <script>
+    mountNav('orders'); mountFooter();
+    if (!requireAuth()) { /* redirected */ }
+
+    function tier(score) {
+      if (score <= 25) return 'Low';
+      if (score <= 50) return 'Medium';
+      if (score <= 75) return 'High';
+      return 'Critical';
+    }
+
+    (async () => {
+      try {
+        const data = await API.get('/me/transactions');
+        const rows = data.transactions;
+        if (!rows.length) {
+          document.getElementById('content').innerHTML = `<div class="panel" style="text-align:center;padding:60px 20px">
+            <div style="font-size:44px;margin-bottom:12px">🧾</div>
+            <h3 style="margin-bottom:8px">No transactions yet</h3>
+            <p class="muted" style="margin-bottom:20px">When you pay — or a payment gets blocked — it shows up here.</p>
+            <a class="btn btn-primary" href="/shop">Start shopping</a></div>`;
+          return;
+        }
+        document.getElementById('content').innerHTML = `<div class="panel">${`
+          <div class="table-wrap"><table>
+            <thead><tr><th>Txn</th><th>Products</th><th>Card</th><th>Amount</th><th>Risk</th><th>Tier</th><th>Status</th><th>When</th></tr></thead>
+            <tbody>${rows.map((r) => `
+              <tr>
+                <td class="mono">${r.transaction_id}</td>
+                <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(r.product_name || '')}</td>
+                <td class="mono">${escapeHtml(r.card_masked || '')}</td>
+                <td>${inr(r.amount)}</td>
+                <td class="mono">${Number(r.risk_score || 0).toFixed(1)}%</td>
+                <td><span class="pill ${tier(Number(r.risk_score || 0)).toLowerCase()}">${tier(Number(r.risk_score || 0))}</span></td>
+                <td><span class="pill ${r.status.toLowerCase()}">${r.status}</span></td>
+                <td class="muted">${(r.created_at || '').slice(0, 16).replace('T', ' ')}</td>
+              </tr>`).join('')}
+            </tbody></table></div>`}</div>`;
+      } catch (e) {
+        document.getElementById('content').innerHTML = `<div class="error-banner">${e.message}</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

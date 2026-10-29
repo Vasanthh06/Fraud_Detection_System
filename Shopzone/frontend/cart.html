@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart — ShopZone</title>
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-btn" href="/shop"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Continue shopping</a>
+    <div class="page-head"><h1>Your cart</h1><p>Review your bag, then proceed to the protected gateway.</p></div>
+    <div class="split" id="split" style="padding-top:18px"></div>
+  </main>
+
+  <script src="/js/api.js?v=2"></script>
+  <script src="/js/store.js?v=2"></script>
+  <script src="/js/ui.js?v=2"></script>
+  <script>
+    mountNav('cart'); mountFooter();
+
+    async function render() {
+      const list = await catalog();
+      const lines = Cart.lines();
+      const split = document.getElementById('split');
+      if (!lines.length) {
+        split.innerHTML = `<div class="panel" style="grid-column:1/-1;text-align:center;padding:60px 20px">
+          <div style="font-size:44px;margin-bottom:12px">🛒</div>
+          <h3 style="margin-bottom:8px">Your bag is empty</h3>
+          <p class="muted" style="margin-bottom:20px">Browse the catalog and add something you love.</p>
+          <a class="btn btn-primary" href="/shop">Start shopping</a></div>`;
+        return;
+      }
+      const rows = lines.map((l) => {
+        const p = productById(l.id, list);
+        if (!p) return '';
+        const emoji = CAT_EMOJI[p.category] || '🛍️';
+        return `<div class="line">
+          <div class="line-thumb"><span>${emoji}</span><img src="${p.image}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()"></div>
+          <div class="line-info"><b>${p.name}</b><span>${p.category} · ${inr(p.price)} each</span></div>
+          <div class="qty">
+            <button data-dec="${p.id}">−</button><span>${l.qty}</span><button data-inc="${p.id}">+</button>
+          </div>
+          <span class="line-price">${inr(p.price * l.qty)}</span>
+          <button class="rm" data-rm="${p.id}" title="Remove">✕</button>
+        </div>`;
+      }).join('');
+      const total = cartTotal(list);
+      split.innerHTML = `
+        <section class="panel"><h3>${lines.reduce((n, l) => n + l.qty, 0)} item(s)</h3>${rows}</section>
+        <aside class="panel">
+          <h3>Summary</h3>
+          <div class="sum-row"><span>Subtotal</span><span>${inr(total)}</span></div>
+          <div class="sum-row"><span>Delivery</span><span style="color:var(--emerald);font-weight:700">FREE</span></div>
+          <div class="sum-row"><span>Fraud check</span><span style="color:var(--sky);font-weight:700">Included</span></div>
+          <div class="sum-row total"><span>Total</span><span>${inr(total)}</span></div>
+          <a class="btn btn-primary btn-block" style="margin-top:16px" href="/checkout">Proceed to payment →</a>
+          <a class="btn btn-ghost btn-block" style="margin-top:10px" href="/shop">Continue shopping</a>
+        </aside>`;
+      split.querySelectorAll('[data-inc]').forEach((b) => b.onclick = () => { const l = Cart.lines().find((x) => x.id === +b.dataset.inc); Cart.setQty(+b.dataset.inc, l.qty + 1); render(); });
+      split.querySelectorAll('[data-dec]').forEach((b) => b.onclick = () => { const l = Cart.lines().find((x) => x.id === +b.dataset.dec); Cart.setQty(+b.dataset.dec, l.qty - 1); render(); });
+      split.querySelectorAll('[data-rm]').forEach((b) => b.onclick = () => { Cart.remove(+b.dataset.rm); toast('Item removed'); render(); });
+    }
+    render().catch(() => { document.getElementById('split').innerHTML = '<div class="panel">Start the backend, then refresh.</div>'; });
+  </script>
+</body>
+</html>

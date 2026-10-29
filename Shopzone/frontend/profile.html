@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — ShopZone</title>
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-btn" href="/shop"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back to shop</a>
+    <div class="page-head">
+      <h1>👤 My profile</h1>
+      <p>Your identity, contact details and password security — all in one place.</p>
+    </div>
+
+    <div class="profile-grid">
+      <!-- identity card -->
+      <section class="panel profile-id">
+        <div class="profile-pic ini" id="pic">?</div>
+        <h3 id="idName">—</h3>
+        <p class="muted" id="idEmail">—</p>
+        <p class="muted" id="idSince" style="font-size:12px;margin-top:4px"></p>
+        <div class="upload-row">
+          <button class="btn btn-ghost btn-block" id="uploadBtn">📷 Upload profile photo</button>
+          <button class="btn btn-ghost btn-block" id="removePicBtn" style="display:none">Remove photo</button>
+          <input type="file" id="picFile" accept="image/*" hidden />
+          <span class="hint">JPG/PNG up to ~1.5 MB · stored with your account</span>
+        </div>
+        <div class="profile-links">
+          <a class="btn btn-ghost btn-block" href="/wishlist">❤ My wishlist</a>
+          <a class="btn btn-ghost btn-block" href="/orders">🧾 My orders</a>
+        </div>
+      </section>
+
+      <!-- details + security -->
+      <div style="display:grid;gap:20px">
+        <section class="panel">
+          <h3>Personal details</h3>
+          <div class="error-banner" id="err1" style="display:none"></div>
+          <div class="ok-banner" id="ok1" style="display:none"></div>
+          <div class="field-row">
+            <label class="field"><span>Full name</span><input id="name" minlength="2" required /></label>
+            <label class="field"><span>Email (fixed)</span><input id="email" disabled /></label>
+          </div>
+          <label class="field"><span>Mobile number</span>
+            <div class="phone-group">
+              <span class="phone-isd">🇮🇳 +91</span>
+              <input id="phone" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" />
+            </div>
+          </label>
+          <label class="field"><span>Location (city, state)</span><input id="location" placeholder="e.g. Bengaluru, Karnataka" maxlength="120" /></label>
+          <button class="btn btn-primary" id="saveProfile">Save changes</button>
+        </section>
+
+        <section class="panel">
+          <h3>🔐 Password security</h3>
+          <div class="error-banner" id="err2" style="display:none"></div>
+          <div class="ok-banner" id="ok2" style="display:none"></div>
+          <label class="field"><span>Current password</span>
+            <span class="pw-wrap"><input id="cur" type="password" autocomplete="current-password" /><button class="eye-btn" id="eyeCur" type="button"></button></span>
+          </label>
+          <label class="field"><span>New password</span>
+            <span class="pw-wrap"><input id="pw" type="password" autocomplete="new-password" /><button class="eye-btn" id="eyeNew" type="button"></button></span>
+            <span class="pw-check" id="pwcheck"></span>
+          </label>
+          <label class="field"><span>Confirm new password</span>
+            <span class="pw-wrap"><input id="pw2" type="password" autocomplete="new-password" /><button class="eye-btn" id="eyeNew2" type="button"></button></span>
+          </label>
+          <button class="btn btn-primary" id="savePw">Update password</button>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js?v=2"></script>
+  <script src="/js/store.js?v=2"></script>
+  <script src="/js/ui.js?v=2"></script>
+  <script>
+    mountNav('profile'); mountFooter();
+    if (!requireAuth()) { /* redirected */ }
+
+    let me = null;
+    let pendingImage = undefined; // undefined = untouched, '' = remove, dataURL = new
+
+    function paintPic() {
+      const pic = document.getElementById('pic');
+      const img = pendingImage !== undefined ? pendingImage : (me && me.profile_image);
+      if (img) {
+        pic.classList.remove('ini');
+        pic.innerHTML = `<img src="${img}" alt="Profile photo">`;
+        document.getElementById('removePicBtn').style.display = '';
+      } else {
+        pic.classList.add('ini');
+        pic.textContent = (me?.name || '?').trim().charAt(0).toUpperCase();
+        pic.innerHTML = pic.textContent;
+        document.getElementById('removePicBtn').style.display = 'none';
+      }
+    }
+
+    function show(id, msg, ok) {
+      const e = document.getElementById(id);
+      e.textContent = msg; e.style.display = msg ? '' : 'none';
+      if (ok !== undefined) e.className = ok ? 'ok-banner' : 'error-banner';
+    }
+
+    (async () => {
+      try { me = await API.get('/auth/me'); } catch { return; }
+      document.getElementById('idName').textContent = me.name;
+      document.getElementById('idEmail').textContent = me.email;
+      document.getElementById('name').value = me.name;
+      document.getElementById('email').value = me.email;
+      document.getElementById('phone').value = me.phone || '';
+      document.getElementById('location').value = me.location || '';
+      paintPic();
+    })();
+
+    document.getElementById('uploadBtn').onclick = () => document.getElementById('picFile').click();
+    document.getElementById('picFile').onchange = (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      if (f.size > 1_500_000) { show('err1', 'Image too large — please pick one under 1.5 MB.', false); return; }
+      const r = new FileReader();
+      r.onload = () => { pendingImage = r.result; paintPic(); toast('Photo ready — press Save changes', 'ok'); };
+      r.readAsDataURL(f);
+    };
+    document.getElementById('removePicBtn').onclick = () => { pendingImage = ''; paintPic(); };
+
+    document.getElementById('saveProfile').onclick = async () => {
+      show('err1', ''); show('ok1', '');
+      const phone = document.getElementById('phone').value.trim();
+      if (!inPhoneOk(phone)) { show('err1', 'Enter a valid mobile number.', false); return; }
+      const body = {
+        name: document.getElementById('name').value.trim(),
+        phone,
+        location: document.getElementById('location').value.trim(),
+      };
+      if (pendingImage !== undefined) body.profile_image = pendingImage;
+      try {
+        const d = await API.put('/me/profile', body);
+        me = { ...me, ...d.user };
+        Auth.update(me);
+        pendingImage = undefined;
+        document.getElementById('idName').textContent = me.name;
+        mountNav('profile');
+        paintPic();
+        show('ok1', 'Profile saved ✓', true);
+        toast('Profile updated', 'ok');
+      } catch (err) { show('err1', err.message, false); }
+    };
+
+    const pw = document.getElementById('pw');
+    pw.oninput = () => renderPwChecklist(document.getElementById('pwcheck'), pw.value);
+    bindEye(document.getElementById('cur'), document.getElementById('eyeCur'));
+    bindEye(pw, document.getElementById('eyeNew'));
+    bindEye(document.getElementById('pw2'), document.getElementById('eyeNew2'));
+    renderPwChecklist(document.getElementById('pwcheck'), '');
+
+    document.getElementById('savePw').onclick = async () => {
+      show('err2', ''); show('ok2', '');
+      if (!pwOk(pw.value)) { show('err2', 'New password does not meet all the rules below the field.', false); return; }
+      if (pw.value !== document.getElementById('pw2').value) { show('err2', 'New passwords do not match.', false); return; }
+      try {
+        const d = await API.put('/me/password', {
+          current_password: document.getElementById('cur').value,
+          new_password: pw.value,
+          confirm_password: document.getElementById('pw2').value,
+        });
+        show('ok2', d.message, true);
+        document.getElementById('cur').value = pw.value = document.getElementById('pw2').value = '';
+        renderPwChecklist(document.getElementById('pwcheck'), '');
+        toast('Password updated', 'ok');
+      } catch (err) { show('err2', err.message, false); }
+    };
+  </script>
+</body>
+</html>

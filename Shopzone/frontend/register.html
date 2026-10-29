@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create account — ShopZone</title>
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+</head>
+<body>
+  <a class="auth-back" href="/">← Home</a>
+  <div class="auth-wrap">
+    <div class="hero-bg"><div class="hero-grid"></div></div>
+    <form class="auth-card" id="form">
+      <div class="logo">
+        <span class="bag" style="width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--emerald),#0ea5e9);color:#04121a">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </span>
+      </div>
+      <h1>Create your account</h1>
+      <p class="sub">No OTP, no email verification — just shop.</p>
+      <div class="error-banner" id="err" style="display:none"></div>
+      <label class="field"><span>Full name</span><input id="name" required minlength="2" placeholder="Your name" autocomplete="name" /></label>
+      <label class="field"><span>Email</span><input id="email" type="email" required placeholder="you@example.com" autocomplete="email" /></label>
+      <label class="field"><span>Mobile number</span><div class="phone-group"><span class="phone-isd">🇮🇳 +91</span><input id="phone" required inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel" /></div></label>
+      <label class="field"><span>Password</span><span class="pw-wrap"><input id="password" type="password" required autocomplete="new-password" placeholder="Strong password" /><button class="eye-btn" id="eyePw" type="button"></button></span><span class="pw-check" id="pwcheck"></span></label>
+      <label class="field"><span>Confirm password</span><span class="pw-wrap"><input id="confirm" type="password" required autocomplete="new-password" /><button class="eye-btn" id="eyePw2" type="button"></button></span></label>
+      <button class="btn btn-primary btn-block" id="go">Create account</button>
+      <p class="auth-switch">Already registered? <a href="/login">Sign in</a></p>
+    </form>
+  </div>
+  <script src="/js/api.js?v=2"></script>
+  <script src="/js/store.js?v=2"></script>
+  <script src="/js/ui.js?v=2"></script>
+  <script>mountThemeFab();</script>
+  <script>
+    bindEye(document.getElementById('password'), document.getElementById('eyePw'));
+    bindEye(document.getElementById('confirm'), document.getElementById('eyePw2'));
+    const pwInput = document.getElementById('password');
+    pwInput.oninput = () => renderPwChecklist(document.getElementById('pwcheck'), pwInput.value);
+    renderPwChecklist(document.getElementById('pwcheck'), '');
+
+    document.getElementById('form').onsubmit = async (e) => {
+      e.preventDefault();
+      const err = document.getElementById('err'); err.style.display = 'none';
+      const pw = document.getElementById('password').value;
+      const emailV = document.getElementById('email').value.trim();
+      const phoneV = document.getElementById('phone').value.trim();
+      if (!emailSuffixOk(emailV)) {
+        err.textContent = 'Enter a valid email address.'; err.style.display = ''; return;
+      }
+      if (!inPhoneOk(phoneV)) {
+        err.textContent = 'Enter a valid mobile number.'; err.style.display = ''; return;
+      }
+      if (!pwOk(pw)) {
+        err.textContent = 'Password must mix: 8+ chars, uppercase, lowercase, a number and a special character.'; err.style.display = ''; return;
+      }
+      if (pw !== document.getElementById('confirm').value) {
+        err.textContent = 'Passwords do not match.'; err.style.display = ''; return;
+      }
+      const go = document.getElementById('go'); go.disabled = true; go.textContent = 'Creating…';
+      try {
+        const data = await API.post('/auth/register', {
+          name: document.getElementById('name').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          password: pw,
+        });
+        Auth.save(data.token, data.user);
+        toast(`Welcome email sent to ${data.user.email} 📬`, 'ok');
+        setTimeout(() => { location.href = '/shop'; }, 900);
+      } catch (e2) {
+        err.textContent = e2.message; err.style.display = '';
+        go.disabled = false; go.textContent = 'Create account';
+      }
+    };
+  </script>
+</body>
+</html>

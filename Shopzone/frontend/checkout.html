@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure Payment — ShopZone</title>
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+</head>
+<body>
+  <main class="wrap" id="main">
+    <a class="back-btn" href="/cart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back to cart</a>
+    <div class="page-head">
+      <h1>💳 Secure payment gateway</h1>
+      <p>🔒 PCI-style flow · Luhn validation · RandomForest fraud scoring — every attempt is logged.</p>
+    </div>
+    <div class="split" id="split" style="padding-top:18px"></div>
+  </main>
+
+  <!-- processing overlay -->
+  <div class="proc" id="proc">
+    <div class="proc-card">
+      <h3>Running fraud checks…</h3>
+      <div class="proc-steps">
+        <div class="proc-step" data-s="0"><span class="ico">1</span> Validating card structure</div>
+        <div class="proc-step" data-s="1"><span class="ico">2</span> Luhn checksum</div>
+        <div class="proc-step" data-s="2"><span class="ico">3</span> Rule engine scoring</div>
+        <div class="proc-step" data-s="3"><span class="ico">4</span> RandomForest model</div>
+        <div class="proc-step" data-s="4"><span class="ico">5</span> Final verdict</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js?v=2"></script>
+  <script src="/js/store.js?v=2"></script>
+  <script src="/js/ui.js?v=2"></script>
+  <script>
+    mountNav('cart'); mountFooter();
+    if (!requireAuth()) { /* redirected */ }
+
+    const split = document.getElementById('split');
+
+    async function renderForm() {
+      const list = await catalog();
+      const lines = Cart.lines();
+      if (!lines.length) {
+        split.innerHTML = `<div class="panel" style="grid-column:1/-1;text-align:center;padding:60px 20px">
+          <div style="font-size:44px;margin-bottom:12px">🛒</div>
+          <h3 style="margin-bottom:8px">Nothing to pay for yet</h3>
+          <p class="muted" style="margin-bottom:20px">Your bag is empty — add a product first.</p>
+          <a class="btn btn-primary" href="/shop">Browse products</a></div>`;
+        return;
+      }
+      const total = cartTotal(list);
+      const rows = lines.map((l) => {
+        const p = productById(l.id, list);
+        if (!p) return '';
+        return `<div class="line"><div class="line-info"><b>${p.name}</b><span>Qty ${l.qty} · ${inr(p.price)} each</span></div><span class="line-price">${inr(p.price * l.qty)}</span></div>`;
+      }).join('');
+      split.innerHTML = `
+        <section class="panel">
+          <h3>Card details</h3>
+          <div class="error-banner" id="err" style="display:none"></div>
+          <label class="field"><span>Card holder name</span><input id="cname" required placeholder="Name on card" autocomplete="cc-name" /></label>
+          <label class="field"><span>Card number</span>
+            <input id="cnum" required inputmode="numeric" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" autocomplete="cc-number" />
+            <span class="card-type-chip" id="ctype"></span>
+          </label>
+          <div class="field-row">
+            <label class="field"><span>Expiry (MM/YY)</span><input id="cexp" required placeholder="MM/YY" maxlength="5" inputmode="numeric" autocomplete="cc-exp" /></label>
+            <label class="field"><span>CVV</span><input id="ccvv" required type="password" placeholder="•••" maxlength="3" inputmode="numeric" autocomplete="cc-csc" /></label>
+          </div>
+          <button class="btn btn-primary btn-block" id="pay" style="margin-top:6px">Pay ${inr(total)} securely</button>
+          <a class="btn btn-ghost btn-block" style="margin-top:10px" href="/cart">← Back to cart</a>
+          <p class="hint" style="margin-top:12px;text-align:center">Demo gateway — do not enter real card details.</p>
+        </section>
+        <aside class="panel">
+          <h3>Order summary</h3>
+          ${rows}
+          <div class="sum-row total"><span>Total payable</span><span>${inr(total)}</span></div>
+          <div class="demo-note" style="margin-top:16px">
+            🧪 <b>Try the engine:</b><br />
+            Safe card → <span class="mono">4111 1111 1111 1111</span><br />
+            Fails Luhn → <span class="mono">4111 1111 1111 1112</span><br />
+            Any 16 digits, future expiry, any CVV.
+          </div>
+        </aside>`;
+
+      const cnum = document.getElementById('cnum');
+      const cexp = document.getElementById('cexp');
+      const ctype = document.getElementById('ctype');
+      cnum.oninput = () => {
+        const digits = cnum.value.replace(/\D/g, '').slice(0, 16);
+        cnum.value = digits.replace(/(.{4})/g, '$1 ').trim();
+        const t = cardTypeOf(digits);
+        ctype.textContent = digits.length === 16 ? (t ? `✓ ${t} detected` : '⚠ Unknown card network (+30 risk)') : (t ? `${t}…` : '');
+        ctype.style.color = digits.length === 16 && !t ? 'var(--amber)' : 'var(--sky)';
+      };
+      cexp.oninput = () => {
+        let v = cexp.value.replace(/\D/g, '').slice(0, 4);
+        cexp.value = v.length > 2 ? v.slice(0, 2) + '/' + v.slice(2) : v;
+      };
+      document.getElementById('pay').onclick = () => void pay(total);
+    }
+
+    async function pay(total) {
+      const err = document.getElementById('err'); err.style.display = 'none';
+      const cname = document.getElementById('cname').value.trim();
+      const cnum = document.getElementById('cnum').value.replace(/\D/g, '');
+      const cexp = document.getElementById('cexp').value.trim();
+      const ccvv = document.getElementById('ccvv').value.trim();
+      if (!cname || !cnum || !cexp || !ccvv) {
+        err.textContent = 'Validation Error: All processing credential parameters are required.';
+        err.style.display = ''; return;
+      }
+
+      const proc = document.getElementById('proc');
+      const steps = proc.querySelectorAll('.proc-step');
+      proc.classList.add('on');
+      steps.forEach((s) => s.classList.remove('on', 'done'));
+      let i = 0;
+      const ticker = setInterval(() => {
+        if (i > 0) steps[i - 1].classList.replace('on', 'done');
+        if (i < steps.length) steps[i].classList.add('on');
+        i++;
+      }, 380);
+
+      try {
+        const result = await API.post('/pay', {
+          customer_name: cname, card_number: cnum, expiry: cexp, cvv: ccvv,
+          cart: Cart.lines(),
+        });
+        clearInterval(ticker);
+        steps.forEach((s) => s.classList.remove('on'));
+        steps[steps.length - 1].classList.add('done');
+        setTimeout(() => { proc.classList.remove('on'); showVerdict(result, total); }, 500);
+      } catch (e) {
+        clearInterval(ticker);
+        proc.classList.remove('on');
+        err.textContent = e.message; err.style.display = '';
+      }
+    }
+
+    function showVerdict(r, total) {
+      const kind = r.status === 'Success' ? 'success' : r.status === 'Suspicious' ? 'suspicious' : 'fraud';
+      const icon = kind === 'success' ? '✅' : kind === 'suspicious' ? '⚠️' : '🚨';
+      const title = kind === 'success' ? 'Payment approved!' : kind === 'suspicious' ? 'Order placed — flagged suspicious' : 'Fraud blocked';
+      const sub = kind === 'success' ? 'Thank you for shopping with ShopZone. Your order has been placed.'
+        : kind === 'suspicious' ? 'Your order went through, but the engine recorded a suspicious behavioral pattern.'
+        : r.message;
+      const barCls = r.risk_score >= 75 ? 'high' : r.risk_score >= 40 ? 'med' : 'low';
+      const signals = (r.signals || []).map((s) => `<div class="signal"><span>${s.label}</span><b>+${s.points}</b></div>`).join('')
+        || `<div class="signal"><span>No rule triggers — clean profile</span><b>+0</b></div>`;
+      if (r.status !== 'Fraud') Cart.clear();
+      if (r.suspended) { Auth.clear(); }
+
+      document.getElementById('main').innerHTML = `
+        <div class="verdict ${kind}">
+          <div class="verdict-ico">${icon}</div>
+          <h1>${title}</h1>
+          <p class="sub">${sub}</p>
+          <div class="risk-meter">
+            <div class="lbl"><span>Risk score</span><b>${Number(r.risk_score || 0).toFixed(1)}%</b></div>
+            <div class="risk-bar ${barCls}"><i id="rfill"></i></div>
+            <div class="lbl" style="margin-top:6px"><span>Rules ${r.rule_risk ?? '—'} · ML ${r.ml_risk ?? '—'}${r.card_type ? ' · ' + r.card_type : ''}</span><span>Block ≥ 80 · Flag ≥ 50</span></div>
+          </div>
+          <div class="signals">${signals}</div>
+          <p class="verdict-meta">Transaction <span class="mono">${r.transaction_id || '—'}</span> · amount ${inr(total)} · logged ${r.status}${r.streak ? ' · failed-attempt streak ' + r.streak + '/3' : ''}<br>
+          ${r.order_placed || r.status === 'Fraud' ? `📧 ${r.status === 'Fraud' ? 'Security alert' : 'Receipt'} emailed to <b>${escapeHtml((Auth.user && Auth.user.email) || 'your inbox')}</b>` : ''}</p>
+          <div class="verdict-actions">
+            ${r.suspended ? '<a class="btn btn-primary" href="/login">Sign in again</a>' : '<a class="btn btn-primary" href="/shop">Continue shopping</a>'}
+            ${!r.suspended && Auth.user && Auth.user.role === 'user' ? '<a class="btn btn-ghost" href="/orders">View my orders</a>' : ''}
+          </div>
+        </div>`;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const fill = document.getElementById('rfill');
+        if (fill) fill.style.width = Math.min(100, Number(r.risk_score || 0)) + '%';
+      }));
+      renderCartCount();
+    }
+
+    renderForm().catch(() => { split.innerHTML = '<div class="panel">Start the backend, then refresh.</div>'; });
+  </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reset password — ShopZone</title>
+  <link rel="stylesheet" href="/css/styles.css?v=2" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+</head>
+<body>
+  <a class="auth-back" href="/">← Home</a>
+  <div class="auth-wrap">
+    <div class="hero-bg"><div class="hero-grid"></div></div>
+    <form class="auth-card" id="form">
+      <div class="logo"><span style="font-size:38px">🔐</span></div>
+      <h1 id="title">Reset password</h1>
+      <p class="sub" id="sub">Enter your registered email <b>or</b> phone number, then choose a new password — or have a secure link emailed to you.</p>
+      <div class="error-banner" id="err" style="display:none"></div>
+      <div class="ok-banner" id="ok" style="display:none"></div>
+
+      <!-- mode A: emailed link (?token=…) -->
+      <div id="tokenMode" style="display:none">
+        <div class="demo-note" style="margin-bottom:14px">🔑 You're using a secure reset link — it expires in 60 minutes and works once.</div>
+      </div>
+
+      <!-- mode B: identifier direct reset -->
+      <div id="idMode">
+        <label class="field"><span>Registered email or phone</span><input id="identifier" placeholder="email@example.com or 9876543210" /></label>
+      </div>
+
+      <label class="field"><span>New password</span>
+        <span class="pw-wrap"><input id="pw" type="password" /><button class="eye-btn" id="eyePw" type="button"></button></span>
+        <span class="pw-check" id="pwcheck"></span>
+      </label>
+      <label class="field"><span>Confirm new password</span>
+        <span class="pw-wrap"><input id="pw2" type="password" /><button class="eye-btn" id="eyePw2" type="button"></button></span>
+      </label>
+      <button class="btn btn-primary btn-block" id="go">Reset password</button>
+
+      <!-- mode C: send link by email -->
+      <div id="linkMode" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+        <p class="hint" style="margin-bottom:8px">Prefer email? We'll send a secure one-time reset link:</p>
+        <div style="display:flex;gap:8px">
+          <input id="femail" type="email" placeholder="you@example.com" style="flex:1;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:var(--bg-2);color:var(--ink);font-size:14px;outline:none" />
+          <button class="btn btn-ghost" id="sendLink" type="button">Email me a link</button>
+        </div>
+      </div>
+
+      <p class="auth-switch">Remembered it? <a href="/login">Back to sign in</a></p>
+    </form>
+  </div>
+  <script src="/js/api.js?v=2"></script>
+  <script src="/js/store.js?v=2"></script>
+  <script src="/js/ui.js?v=2"></script>
+  <script>mountThemeFab();</script>
+  <script>
+    bindEye(document.getElementById('pw'), document.getElementById('eyePw'));
+    bindEye(document.getElementById('pw2'), document.getElementById('eyePw2'));
+    const pwIn = document.getElementById('pw');
+    pwIn.oninput = () => renderPwChecklist(document.getElementById('pwcheck'), pwIn.value);
+    renderPwChecklist(document.getElementById('pwcheck'), '');
+
+    const err = document.getElementById('err'), ok = document.getElementById('ok');
+    const show = (el, msg) => { el.textContent = msg; el.style.display = msg ? '' : 'none'; };
+    const TOKEN = new URLSearchParams(location.search).get('token');
+    if (TOKEN) {
+      document.getElementById('idMode').style.display = 'none';
+      document.getElementById('linkMode').style.display = 'none';
+      document.getElementById('tokenMode').style.display = '';
+      document.getElementById('title').textContent = 'Choose a new password';
+      document.getElementById('sub').textContent = 'Your secure link was verified — set a strong password below.';
+    }
+
+    document.getElementById('sendLink').onclick = async () => {
+      show(err, ''); show(ok, '');
+      const em = document.getElementById('femail').value.trim();
+      if (!em || !em.includes('@')) { show(err, 'Enter your email address first.'); return; }
+      const b = document.getElementById('sendLink'); b.disabled = true; b.textContent = 'Sending…';
+      try {
+        const d = await API.post('/auth/forgot', { email: em });
+        show(ok, d.message);
+        b.textContent = 'Link sent ✓';
+      } catch (e2) { show(err, e2.message); b.disabled = false; b.textContent = 'Email me a link'; }
+    };
+
+    document.getElementById('form').onsubmit = async (e) => {
+      e.preventDefault();
+      show(err, ''); show(ok, '');
+      if (!pwOk(pwIn.value)) {
+        show(err, 'New password must mix: 8+ chars, uppercase, lowercase, a number and a special character.');
+        return;
+      }
+      if (pwIn.value !== document.getElementById('pw2').value) { show(err, 'Passwords do not match.'); return; }
+      const go = document.getElementById('go'); go.disabled = true; go.textContent = 'Resetting…';
+      try {
+        let d;
+        if (TOKEN) {
+          d = await API.post('/auth/reset-token', {
+            token: TOKEN, new_password: pwIn.value, confirm_password: document.getElementById('pw2').value,
+          });
+        } else {
+          const idf = document.getElementById('identifier').value.trim();
+          if (!idf) { show(err, 'Enter your registered email or phone — or use “Email me a link”.'); go.disabled = false; go.textContent = 'Reset password'; return; }
+          d = await API.post('/auth/reset', {
+            identifier: idf, new_password: pwIn.value, confirm_password: document.getElementById('pw2').value,
+          });
+        }
+        show(ok, d.message + ' A confirmation email is on its way.');
+        go.textContent = 'Done ✓';
+        setTimeout(() => location.href = '/login', 1500);
+      } catch (e2) {
+        show(err, e2.message);
+        go.disabled = false; go.textContent = 'Reset password';
+      }
+    };
+  </script>
+</body>
+</html>
