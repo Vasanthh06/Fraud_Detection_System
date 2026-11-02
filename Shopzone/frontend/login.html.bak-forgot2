@@ -1,0 +1,82 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in — ShopZone</title>
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=3" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+</head>
+<body>
+  <a class="auth-back" href="/">← Home</a>
+  <div class="auth-wrap">
+    <div class="hero-bg"><div class="hero-grid"></div></div>
+    <form class="auth-card" id="form">
+      <div class="logo">
+        <span class="bag" style="width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--emerald),#0ea5e9);color:#04121a">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </span>
+      </div>
+      <h1>Welcome back</h1>
+      <p class="sub">Sign in to continue to ShopZone.</p>
+      <div class="error-banner" id="err" style="display:none"></div>
+      <label class="field"><span>Email</span><input id="email" type="email" required placeholder="you@example.com" autocomplete="email" /></label>
+      <label class="field"><span>Password</span><span class="pw-wrap">
+        <div class="password-wrapper">
+          <input id="password" type="password" required autocomplete="current-password" placeholder="Your password" />
+          <button type="button" class="toggle-password" onclick="togglePassword('password', this)" aria-label="Toggle password visibility">
+            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg class="eye-off-icon" style="display:none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+          </button>
+        </div>
+        <button class="eye-btn" id="eyePw" type="button"></button>
+      </span></label>
+      <button class="btn btn-primary btn-block" id="go" type="submit">Sign in</button>
+      <p class="auth-switch">New to ShopZone? <a href="/register">Create an account</a></p>
+    </form>
+  </div>
+  <script src="/js/api.js?v=3"></script>
+  <script src="/js/store.js?v=3"></script>
+  <script src="/js/ui.js?v=3"></script>
+  <script>mountThemeFab();</script>
+  <script>
+    bindEye(document.getElementById('password'), document.getElementById('eyePw'));
+    document.getElementById('form').onsubmit = async (e) => {
+      e.preventDefault();
+      const err = document.getElementById('err'); err.style.display = 'none';
+      const go = document.getElementById('go'); go.disabled = true; go.textContent = 'Signing in…';
+      try {
+        const data = await API.post('/auth/login', {
+          email: document.getElementById('email').value.trim(),
+          password: document.getElementById('password').value,
+        });
+        Auth.save(data.token, data.user);
+        const next = new URLSearchParams(location.search).get('next');
+        const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : null;
+        location.href = safeNext || (data.user.role === 'admin' ? '/admin' : '/shop');
+      } catch (e2) {
+        err.textContent = e2.message; err.style.display = '';
+        go.disabled = false; go.textContent = 'Sign in';
+      }
+    };
+  </script>
+<script>
+if (typeof togglePassword !== 'function') {
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const eye = btn.querySelector('.eye-icon');
+    const eyeOff = btn.querySelector('.eye-off-icon');
+    if (input.type === "password") {
+      input.type = "text";
+      eye.style.display = "none"; eyeOff.style.display = "block";
+    } else {
+      input.type = "password";
+      eye.style.display = "block"; eyeOff.style.display = "none";
+    }
+  }
+}
+</script>
+</body>
+</html>
+

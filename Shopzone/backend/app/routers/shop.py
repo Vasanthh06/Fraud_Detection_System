@@ -1,4 +1,4 @@
-"""Shop routes — catalog + the payment gateway flow.
+﻿"""Shop routes â€” catalog + the payment gateway flow.
 
 The payment flow is a 1:1 port of the original pages/payment.py:
 structure check -> Luhn -> rule+ML scoring -> verdict -> streak/lockout ->
@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from .. import db, emailsvc
+from ..otp import require_otp
 from ..fraud import clean_digits, evaluate_payment, luhn_check, mask_card
 from ..security import (
     current_claims,
@@ -82,6 +83,7 @@ def _decline(user_email: str, txn_id: str, name: str, products_label: str,
 @router.post("/pay")
 def pay(body: PayIn, request: Request, claims: dict = Depends(current_claims)):
     user_email = claims.get("sub", "")
+    require_otp(request, "payment", user_email)
     rate_limit("pay:" + (request.client.host if request.client else "?") + ":" + user_email, 15)
     if claims.get("role") != "user":
         raise HTTPException(status_code=403, detail="The admin desk cannot place orders.")
@@ -146,7 +148,7 @@ def pay(body: PayIn, request: Request, claims: dict = Depends(current_claims)):
             reason, "Fraud", user_email,
         )
         subj, hb = emailsvc.fraud_alert_email(
-            body.customer_name, txn_id, f"₹{amount:,.2f}", f"{risk_score:.1f}%", reason, masked)
+            body.customer_name, txn_id, f"â‚¹{amount:,.2f}", f"{risk_score:.1f}%", reason, masked)
         emailsvc.send_async(user_email, subj, hb)
         return {
             "status": "Fraud",
@@ -174,7 +176,7 @@ def pay(body: PayIn, request: Request, claims: dict = Depends(current_claims)):
             reason, "Suspicious", user_email,
         )
         subj, hb = emailsvc.receipt_email(
-            body.customer_name, txn_id, product_names, f"₹{amount:,.2f}",
+            body.customer_name, txn_id, product_names, f"â‚¹{amount:,.2f}",
             "Suspicious", f"{risk_score:.1f}%", masked, user_email)
         emailsvc.send_async(user_email, subj, hb)
         return {
@@ -191,7 +193,7 @@ def pay(body: PayIn, request: Request, claims: dict = Depends(current_claims)):
             "message": f"Suspicious Transaction Recorded | Risk Score: {risk_score:.1f}%",
         }
 
-    # Success — reset streak exactly like the original
+    # Success â€” reset streak exactly like the original
     db.reset_failed_payment_streak(user_email)
     db.save_transaction(
         txn_id, body.customer_name, product_names, masked, amount, verdict["country"],
@@ -199,7 +201,7 @@ def pay(body: PayIn, request: Request, claims: dict = Depends(current_claims)):
         reason, "Success", user_email,
     )
     subj, hb = emailsvc.receipt_email(
-        body.customer_name, txn_id, product_names, f"₹{amount:,.2f}",
+        body.customer_name, txn_id, product_names, f"â‚¹{amount:,.2f}",
         "Success", f"{risk_score:.1f}%", masked, user_email)
     emailsvc.send_async(user_email, subj, hb)
     return {
@@ -264,8 +266,9 @@ def update_profile(body: ProfileIn, claims: dict = Depends(current_claims)):
 
 
 @router.put("/me/password")
-def change_password(body: PasswordIn, claims: dict = Depends(current_claims)):
+def change_password(body: PasswordIn, request: Request, claims: dict = Depends(current_claims)):
     email = claims.get("sub", "")
+    require_otp(request, "password_change", email)
     if claims.get("role") != "user":
         raise HTTPException(status_code=403, detail="Admin password is managed via server environment.")
     row = db.get_user_by_email(email)

@@ -1,0 +1,2 @@
+requestOtp(email, purpose)          // POSTs /otp/send
+showOtpModal({ email, purpose, onVerified })  // 6-digit input + resend button + 30s countdown

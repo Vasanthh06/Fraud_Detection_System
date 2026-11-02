@@ -1,4 +1,4 @@
-"""Auth routes — register / login / reset (bcrypt, email-OR-phone reset, no OTP)
+﻿"""Auth routes â€” register / login / reset (bcrypt, email-OR-phone reset, no OTP)
 plus the college validation spec:
   * email must end with .com / .in / .org
   * Indian mobile: +91 prefix, 10 digits starting 6/7/8/9
@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from .. import db, emailsvc
+from ..otp import generate_otp, verify_otp
 from ..config import APP_URL
 from ..security import (
     current_claims,
@@ -180,3 +181,90 @@ def me(claims: dict = Depends(current_claims)):
     if row is None:
         _fail(401, "Account no longer exists.")
     return _user_payload(row)
+
+# =============== Unauthenticated OTP Password Reset ===============
+
+class ForgotOtpSendIn(BaseModel):
+    email: str = Field(min_length=5, max_length=180)
+
+class ForgotOtpVerifyIn(BaseModel):
+    email: str = Field(min_length=5, max_length=180)
+    code: str = Field(min_length=6, max_length=6)
+    new_password: str = Field(min_length=1, max_length=72)
+    confirm_password: str = Field(min_length=1, max_length=72)
+
+@router.post("/forgot-otp/send")
+def forgot_otp_send(body: ForgotOtpSendIn):
+    # Check if user exists first to prevent email enumeration
+    row = db.get_user_by_email(body.email.strip().lower())
+    if not row:
+        # Return success anyway (security best practice)
+        return {"ok": True, "message": "If the email exists, a code was sent."}
+    generate_otp(body.email, "password_change")
+    return {"ok": True, "message": "OTP sent to your email."}
+
+@router.post("/forgot-otp/verify")
+def forgot_otp_verify(body: ForgotOtpVerifyIn):
+    if body.new_password != body.confirm_password:
+        raise _fail(422, "Passwords do not match.")
+    
+    issues = password_policy_issues(body.new_password)
+    if issues:
+        raise _fail(422, "Password needs " + ", ".join(issues) + ".")
+        
+    try:
+        # verifies OTP and returns a token if successful
+        verify_otp(body.email, body.code, "password_change")
+    except HTTPException as e:
+        raise _fail(400, e.detail)
+
+    # OTP is valid! Update the password.
+    row = db.get_user_by_email(body.email.strip().lower())
+    if not row:
+        raise _fail(404, "User not found.")
+        
+    db.update_password_hash(body.email.strip().lower(), hash_password(body.new_password))
+    return {"ok": True, "message": "Password updated. You can now sign in."}
+# =============== Unauthenticated OTP Password Reset ===============
+
+class ForgotOtpSendIn(BaseModel):
+    email: str = Field(min_length=5, max_length=180)
+
+class ForgotOtpVerifyIn(BaseModel):
+    email: str = Field(min_length=5, max_length=180)
+    code: str = Field(min_length=6, max_length=6)
+    new_password: str = Field(min_length=1, max_length=72)
+    confirm_password: str = Field(min_length=1, max_length=72)
+
+@router.post("/forgot-otp/send")
+def forgot_otp_send(body: ForgotOtpSendIn):
+    # Check if user exists first to prevent email enumeration
+    row = db.get_user_by_email(body.email.strip().lower())
+    if not row:
+        # Return success anyway (security best practice)
+        return {"ok": True, "message": "If the email exists, a code was sent."}
+    generate_otp(body.email, "password_change")
+    return {"ok": True, "message": "OTP sent to your email."}
+
+@router.post("/forgot-otp/verify")
+def forgot_otp_verify(body: ForgotOtpVerifyIn):
+    if body.new_password != body.confirm_password:
+        raise _fail(422, "Passwords do not match.")
+    
+    issues = password_policy_issues(body.new_password)
+    if issues:
+        raise _fail(422, "Password needs " + ", ".join(issues) + ".")
+        
+    try:
+        # verifies OTP and returns a token if successful
+        verify_otp(body.email, body.code, "password_change")
+    except HTTPException as e:
+        raise _fail(400, e.detail)
+
+    # OTP is valid! Update the password.
+    row = db.get_user_by_email(body.email.strip().lower())
+    if not row:
+        raise _fail(404, "User not found.")
+        
+    db.update_password_hash(body.email.strip().lower(), hash_password(body.new_password))
+    return {"ok": True, "message": "Password updated. You can now sign in."}

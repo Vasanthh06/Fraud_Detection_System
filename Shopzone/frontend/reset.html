@@ -1,159 +1,143 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reset password — ShopZone</title>
-  <link rel="stylesheet" href="/css/styles.css?v=2" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
   <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=3" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
 </head>
 <body>
-  <a class="auth-back" href="/">← Home</a>
+  <a class="auth-back" href="/login">← Sign in</a>
   <div class="auth-wrap">
     <div class="hero-bg"><div class="hero-grid"></div></div>
-    <form class="auth-card" id="form">
-      <div class="logo"><span style="font-size:38px">🔐</span></div>
-      <h1 id="title">Reset password</h1>
-      <p class="sub" id="sub">Enter your registered email <b>or</b> phone number, then choose a new password — or have a secure link emailed to you.</p>
-      <div class="error-banner" id="err" style="display:none"></div>
-      <div class="ok-banner" id="ok" style="display:none"></div>
+    <div class="auth-card" style="max-width:400px">
+      <h1 style="margin-bottom:8px">Reset password</h1>
+      <p class="sub" id="subtitle" style="margin-bottom:24px">Enter your email to receive a 6-digit code.</p>
+      
+      <div id="err" class="error-banner" style="display:none"></div>
+      <div id="ok" class="error-banner" style="display:none;border-color:#10b981;color:#10b981"></div>
 
-      <!-- mode A: emailed link (?token=…) -->
-      <div id="tokenMode" style="display:none">
-        <div class="demo-note" style="margin-bottom:14px">🔑 You're using a secure reset link — it expires in 60 minutes and works once.</div>
+      <!-- Step 1: Email -->
+      <div id="step1">
+        <label class="field">
+          <span>Email</span>
+          <input id="email" type="email" required placeholder="you@example.com" autocomplete="email" />
+        </label>
+        <button class="btn btn-primary btn-block" id="btnSend" type="button" style="margin-top:12px">Send Code</button>
       </div>
 
-      <!-- mode B: identifier direct reset -->
-      <div id="idMode">
-        <label class="field"><span>Registered email or phone</span><input id="identifier" placeholder="email@example.com or 9876543210" /></label>
+      <!-- Step 2: OTP & New Password -->
+      <div id="step2" style="display:none">
+        <p style="font-size:13px;opacity:.8;margin-bottom:16px">Code sent to <b id="displayEmail"></b></p>
+        
+        <label class="field">
+          <span>6-digit code</span>
+          <input id="otpCode" type="text" maxlength="6" inputmode="numeric" placeholder="••••••" style="letter-spacing:4px;font-size:18px;text-align:center" />
+        </label>
+
+        <label class="field">
+          <span>New password</span>
+          <input id="newPassword" type="password" required placeholder="Strong password" autocomplete="new-password" />
+        </label>
+        
+        <label class="field">
+          <span>Confirm password</span>
+          <input id="confirmPassword" type="password" required placeholder="Confirm password" autocomplete="new-password" />
+        </label>
+
+        <button class="btn btn-primary btn-block" id="btnVerify" type="button" style="margin-top:12px">Reset Password</button>
+        <button class="btn btn-block" id="btnResend" type="button" style="margin-top:8px;background:transparent;border:1px solid #555" disabled>Resend code (30s)</button>
       </div>
 
-      <label class="field"><span>New password</span>
-        <span class="pw-wrap"><div class="password-wrapper">
-  <div class="password-wrapper">
-  <input id="pw" type="password" />
-  <button type="button" class="toggle-password" onclick="togglePassword('pw', this)" aria-label="Toggle password visibility">
-    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-    <svg class="eye-off-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-  </button>
-</div>
-  <button type="button" class="toggle-password" onclick="togglePassword('pw', this)" aria-label="Toggle password visibility">
-    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-    <svg class="eye-off-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-  </button>
-</div><button class="eye-btn" id="eyePw" type="button"></button></span>
-        <span class="pw-check" id="pwcheck"></span>
-      </label>
-      <label class="field"><span>Confirm new password</span>
-        <span class="pw-wrap"><div class="password-wrapper">
-  <div class="password-wrapper">
-  <input id="pw2" type="password" />
-  <button type="button" class="toggle-password" onclick="togglePassword('pw2', this)" aria-label="Toggle password visibility">
-    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-    <svg class="eye-off-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-  </button>
-</div>
-  <button type="button" class="toggle-password" onclick="togglePassword('pw2', this)" aria-label="Toggle password visibility">
-    <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-    <svg class="eye-off-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-  </button>
-</div><button class="eye-btn" id="eyePw2" type="button"></button></span>
-      </label>
-      <button class="btn btn-primary btn-block" id="go">Reset password</button>
-
-      <!-- mode C: send link by email -->
-      <div id="linkMode" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
-        <p class="hint" style="margin-bottom:8px">Prefer email? We'll send a secure one-time reset link:</p>
-        <div style="display:flex;gap:8px">
-          <input id="femail" type="email" placeholder="you@example.com" style="flex:1;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:var(--bg-2);color:var(--ink);font-size:14px;outline:none" />
-          <button class="btn btn-ghost" id="sendLink" type="button">Email me a link</button>
-        </div>
-      </div>
-
-      <p class="auth-switch">Remembered it? <a href="/login">Back to sign in</a></p>
-    </form>
+    </div>
   </div>
-  <script src="/js/api.js?v=2"></script>
-  <script src="/js/store.js?v=2"></script>
-  <script src="/js/ui.js?v=2"></script>
+
+  <script src="/js/api.js?v=3"></script>
+  <script src="/js/store.js?v=3"></script>
+  <script src="/js/ui.js?v=3"></script>
   <script>mountThemeFab();</script>
   <script>
-    bindEye(document.getElementById('pw'), document.getElementById('eyePw'));
-    bindEye(document.getElementById('pw2'), document.getElementById('eyePw2'));
-    const pwIn = document.getElementById('pw');
-    pwIn.oninput = () => renderPwChecklist(document.getElementById('pwcheck'), pwIn.value);
-    renderPwChecklist(document.getElementById('pwcheck'), '');
+    const $ = id => document.getElementById(id);
+    const errEl = $('err'), okEl = $('ok');
+    let currentEmail = '';
+    let timer;
 
-    const err = document.getElementById('err'), ok = document.getElementById('ok');
-    const show = (el, msg) => { el.textContent = msg; el.style.display = msg ? '' : 'none'; };
-    const TOKEN = new URLSearchParams(location.search).get('token');
-    if (TOKEN) {
-      document.getElementById('idMode').style.display = 'none';
-      document.getElementById('linkMode').style.display = 'none';
-      document.getElementById('tokenMode').style.display = '';
-      document.getElementById('title').textContent = 'Choose a new password';
-      document.getElementById('sub').textContent = 'Your secure link was verified — set a strong password below.';
-    }
+    function showErr(msg) { errEl.textContent = msg; errEl.style.display = 'block'; okEl.style.display = 'none'; }
+    function showOk(msg) { okEl.textContent = msg; okEl.style.display = 'block'; errEl.style.display = 'none'; }
+    function hideMsgs() { errEl.style.display = 'none'; okEl.style.display = 'none'; }
 
-    document.getElementById('sendLink').onclick = async () => {
-      show(err, ''); show(ok, '');
-      const em = document.getElementById('femail').value.trim();
-      if (!em || !em.includes('@')) { show(err, 'Enter your email address first.'); return; }
-      const b = document.getElementById('sendLink'); b.disabled = true; b.textContent = 'Sending…';
+    $('btnSend').onclick = async () => {
+      hideMsgs();
+      const email = $('email').value.trim();
+      if (!email) return showErr('Enter your email.');
+      
+      $('btnSend').disabled = true; $('btnSend').textContent = 'Sending…';
       try {
-        const d = await API.post('/auth/forgot', { email: em });
-        show(ok, d.message);
-        b.textContent = 'Link sent ✓';
-      } catch (e2) { show(err, e2.message); b.disabled = false; b.textContent = 'Email me a link'; }
+        await API.post('/auth/forgot-otp/send', { email });
+        currentEmail = email;
+        $('displayEmail').textContent = email;
+        $('step1').style.display = 'none';
+        $('step2').style.display = 'block';
+        $('subtitle').textContent = "Enter the code and your new password.";
+        startResendTimer();
+      } catch (e) {
+        showErr(e.message);
+        $('btnSend').disabled = false; $('btnSend').textContent = 'Send Code';
+      }
     };
 
-    document.getElementById('form').onsubmit = async (e) => {
-      e.preventDefault();
-      show(err, ''); show(ok, '');
-      if (!pwOk(pwIn.value)) {
-        show(err, 'New password must mix: 8+ chars, uppercase, lowercase, a number and a special character.');
-        return;
-      }
-      if (pwIn.value !== document.getElementById('pw2').value) { show(err, 'Passwords do not match.'); return; }
-      const go = document.getElementById('go'); go.disabled = true; go.textContent = 'Resetting…';
+    $('btnVerify').onclick = async () => {
+      hideMsgs();
+      const code = $('otpCode').value.trim();
+      const pw = $('newPassword').value;
+      const pw2 = $('confirmPassword').value;
+      
+      if (!/^\d{6}$/.test(code)) return showErr('Enter the 6-digit code.');
+      if (pw !== pw2) return showErr('Passwords do not match.');
+      
+      $('btnVerify').disabled = true; $('btnVerify').textContent = 'Verifying…';
       try {
-        let d;
-        if (TOKEN) {
-          d = await API.post('/auth/reset-token', {
-            token: TOKEN, new_password: pwIn.value, confirm_password: document.getElementById('pw2').value,
-          });
+        await API.post('/auth/forgot-otp/verify', { email: currentEmail, code, new_password: pw, confirm_password: pw2 });
+        $('step2').style.display = 'none';
+        $('subtitle').style.display = 'none';
+        showOk('Password reset successfully. Redirecting to login…');
+        setTimeout(() => location.href = '/login', 2000);
+      } catch (e) {
+        showErr(e.message);
+        $('btnVerify').disabled = false; $('btnVerify').textContent = 'Reset Password';
+      }
+    };
+
+    function startResendTimer() {
+      let s = 30;
+      const btn = $('btnResend');
+      btn.disabled = true; btn.textContent = `Resend code (${s}s)`;
+      clearInterval(timer);
+      timer = setInterval(() => {
+        s--;
+        if (s <= 0) {
+          clearInterval(timer);
+          btn.disabled = false; btn.textContent = 'Resend code';
         } else {
-          const idf = document.getElementById('identifier').value.trim();
-          if (!idf) { show(err, 'Enter your registered email or phone — or use “Email me a link”.'); go.disabled = false; go.textContent = 'Reset password'; return; }
-          d = await API.post('/auth/reset', {
-            identifier: idf, new_password: pwIn.value, confirm_password: document.getElementById('pw2').value,
-          });
+          btn.textContent = `Resend code (${s}s)`;
         }
-        show(ok, d.message + ' A confirmation email is on its way.');
-        go.textContent = 'Done ✓';
-        setTimeout(() => location.href = '/login', 1500);
-      } catch (e2) {
-        show(err, e2.message);
-        go.disabled = false; go.textContent = 'Reset password';
+      }, 1000);
+    }
+
+    $('btnResend').onclick = async () => {
+      hideMsgs();
+      $('btnResend').disabled = true;
+      try {
+        await API.post('/auth/forgot-otp/send', { email: currentEmail });
+        showOk('New code sent.');
+        startResendTimer();
+      } catch (e) {
+        showErr(e.message);
+        $('btnResend').disabled = false;
       }
     };
   </script>
-<script>
-if (typeof togglePassword !== 'function') {
-  function togglePassword(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const eye = btn.querySelector('.eye-icon');
-    const eyeOff = btn.querySelector('.eye-off-icon');
-    if (input.type === "password") {
-      input.type = "text";
-      eye.style.display = "none"; eyeOff.style.display = "block";
-    } else {
-      input.type = "password";
-      eye.style.display = "block"; eyeOff.style.display = "none";
-    }
-  }
-}
-</script>
 </body>
 </html>

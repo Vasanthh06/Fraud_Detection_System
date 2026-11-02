@@ -1,0 +1,169 @@
+﻿"""OTP service — generate, store, verify, issue short-lived tokens."""
+from __future__ import annotations
+import logging
+import secrets
+from datetime import datetime, timedelta, timezone
+import bcrypt
+import jwt
+from fastapi import HTTPException
+from . import db, emailsvc
+from .config import ENV, JWT_SECRET
+from .security import decode_token
+
+logger = logging.getLogger("shopzone.otp")
+PURPOSES = {"password_change", "transaction", "payment"}
+OTP_TTL_SECONDS = 300
+OTP_MAX_ATTEMPTS = 3
+OTP_COOLDOWN_SECONDS = 30
+TOKEN_TTL_SECONDS = 300
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+def _iso(dt: datetime) -> str:
+    return dt.astimezone(timezone.utc).isoformat()
+
+def _parse_iso(s: str) -> datetime:
+    return datetime.fromisoformat(s)
+
+def _hash(code: str) -> str:
+    return bcrypt.hashpw(code.encode(), bcrypt.gensalt(rounds=10)).decode()
+
+def _check(code: str, hashed: str) -> bool:
+    try:
+        return bcrypt.checkpw(code.encode(), hashed.encode())
+    except ValueError:
+        return False
+
+def _validate_purpose(purpose: str) -> None:
+    if purpose not in PURPOSES:
+        raise HTTPException(status_code=400, detail="Invalid OTP purpose.")
+
+def init_otp_table() -> None:
+    q = db._q
+    with db.cursor(commit=True) as cx:
+        if db.ENGINE == "postgres":
+            cx.execute(q("""
+                CREATE TABLE IF NOT EXISTS otp_codes (
+                    id SERIAL PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    purpose TEXT NOT NULL,
+                    code_hash TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    used INTEGER NOT NULL DEFAULT 0,
+                    created_at TEXT NOT NULL
+                )
+            """))
+        else:
+            cx.execute(q("""
+                CREATE TABLE IF NOT EXISTS otp_codes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT NOT NULL,
+                    purpose TEXT NOT NULL,
+                    code_hash TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    used INTEGER NOT NULL DEFAULT 0,
+                    created_at TEXT NOT NULL
+                )
+            """))
+        try:
+            cx.execute(q("CREATE INDEX IF NOT EXISTS ix_otp_lookup ON otp_codes(email, purpose, used)"))
+        except Exception:
+            pass
+def generate_otp(email: str, purpose: str) -> None:
+    _validate_purpose(purpose)
+    email = (email or "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required.")
+
+    q = db._q
+    now = _now()
+    with db.cursor(commit=True) as cx:
+        cx.execute(q("SELECT created_at FROM otp_codes WHERE email=? AND purpose=? ORDER BY id DESC LIMIT 1"), (email, purpose))
+        row = cx.fetchone()
+        
+        if row:
+            elapsed = (now - _parse_iso(row["created_at"])).total_seconds()
+            if elapsed < OTP_COOLDOWN_SECONDS:
+                wait = int(OTP_COOLDOWN_SECONDS - elapsed)
+                raise HTTPException(status_code=429, detail=f"Please wait {wait}s before requesting another code.")
+
+        cx.execute(q("UPDATE otp_codes SET used=1 WHERE email=? AND purpose=? AND used=0"), (email, purpose))
+        
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        expires_at = now + timedelta(seconds=OTP_TTL_SECONDS)
+        cx.execute(
+            q("INSERT INTO otp_codes (email, purpose, code_hash, expires_at, attempts, used, created_at) VALUES (?,?,?,?,0,0,?)"),
+            (email, purpose, _hash(code), _iso(expires_at), _iso(now)),
+        )
+
+    if ENV == "development":
+        logger.info("OTP [%s] for %s: %s (dev log)", purpose, email, code)
+
+    subject = "Your ShopZone verification code"
+    html = f"<p>Your ShopZone verification code is:</p><p style='font-size:28px;font-weight:bold'>{code}</p><p>Expires in 5 mins.</p>"
+    
+    # We REMOVED the try/except here so errors show up!
+    emailsvc.send_async(email, subject, html)
+
+def verify_otp(email: str, code: str, purpose: str) -> str:
+    _validate_purpose(purpose)
+    email = (email or "").strip().lower()
+    code = (code or "").strip()
+    if not email or not code:
+        raise HTTPException(status_code=400, detail="Email and code are required.")
+    if not (len(code) == 6 and code.isdigit()):
+        raise HTTPException(status_code=400, detail="Code must be 6 digits.")
+
+    q = db._q
+    now = _now()
+    with db.cursor(commit=True) as cx:
+        cx.execute(
+            q("SELECT id, code_hash, expires_at, attempts, used FROM otp_codes WHERE email=? AND purpose=? ORDER BY id DESC LIMIT 1"),
+            (email, purpose),
+        )
+        row = cx.fetchone()
+        
+        if not row:
+            raise HTTPException(status_code=400, detail="No OTP found. Request a new code.")
+        if row["used"]:
+            raise HTTPException(status_code=400, detail="Code already used. Request a new one.")
+        if _parse_iso(row["expires_at"]) < now:
+            raise HTTPException(status_code=400, detail="Code expired. Request a new one.")
+        if row["attempts"] >= OTP_MAX_ATTEMPTS:
+            raise HTTPException(status_code=400, detail="Too many attempts. Request a new code.")
+
+        if not _check(code, row["code_hash"]):
+            cx.execute(q("UPDATE otp_codes SET attempts = attempts + 1 WHERE id=?"), (row["id"],))
+            remaining = OTP_MAX_ATTEMPTS - (row["attempts"] + 1)
+            raise HTTPException(status_code=400, detail=f"Incorrect code. {max(remaining,0)} attempt(s) left.")
+
+        cx.execute(q("UPDATE otp_codes SET used=1 WHERE id=?"), (row["id"],))
+
+    return _issue_otp_token(email, purpose)
+
+def _issue_otp_token(email: str, purpose: str) -> str:
+    payload = {
+        "sub": email,
+        "otp": True,
+        "purpose": purpose,
+        "exp": int((_now() + timedelta(seconds=TOKEN_TTL_SECONDS)).timestamp()),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+def require_otp(request, purpose: str, email: str) -> None:
+    token = request.headers.get("x-otp-token")
+    if not token:
+        raise HTTPException(status_code=403, detail="OTP verification required.")
+    try:
+        claims = decode_token(token)
+    except Exception:
+        raise HTTPException(status_code=403, detail="Invalid or expired OTP token.")
+    if not claims.get("otp"):
+        raise HTTPException(status_code=403, detail="Not an OTP token.")
+    if (claims.get("sub") or "").lower() != (email or "").lower():
+        raise HTTPException(status_code=403, detail="OTP token is for a different account.")
+    if claims.get("purpose") != purpose:
+        raise HTTPException(status_code=403, detail=f"OTP token purpose mismatch (need {purpose}).")

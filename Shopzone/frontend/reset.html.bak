@@ -1,0 +1,143 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reset password — ShopZone</title>
+  <script>try{if(localStorage.getItem("sz_theme")==="light")document.documentElement.dataset.theme="light";}catch(e){}</script>
+  <link rel="stylesheet" href="/css/styles.css?v=3" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
+</head>
+<body>
+  <a class="auth-back" href="/login">← Sign in</a>
+  <div class="auth-wrap">
+    <div class="hero-bg"><div class="hero-grid"></div></div>
+    <div class="auth-card" style="max-width:400px">
+      <h1 style="margin-bottom:8px">Reset password</h1>
+      <p class="sub" id="subtitle" style="margin-bottom:24px">Enter your email to receive a 6-digit code.</p>
+      
+      <div id="err" class="error-banner" style="display:none"></div>
+      <div id="ok" class="error-banner" style="display:none;border-color:#10b981;color:#10b981"></div>
+
+      <!-- Step 1: Email -->
+      <div id="step1">
+        <label class="field">
+          <span>Email</span>
+          <input id="email" type="email" required placeholder="you@example.com" autocomplete="email" />
+        </label>
+        <button class="btn btn-primary btn-block" id="btnSend" type="button" style="margin-top:12px">Send Code</button>
+      </div>
+
+      <!-- Step 2: OTP & New Password -->
+      <div id="step2" style="display:none">
+        <p style="font-size:13px;opacity:.8;margin-bottom:16px">Code sent to <b id="displayEmail"></b></p>
+        
+        <label class="field">
+          <span>6-digit code</span>
+          <input id="otpCode" type="text" maxlength="6" inputmode="numeric" placeholder="••••••" style="letter-spacing:4px;font-size:18px;text-align:center" />
+        </label>
+
+        <label class="field">
+          <span>New password</span>
+          <input id="newPassword" type="password" required placeholder="Strong password" autocomplete="new-password" />
+        </label>
+        
+        <label class="field">
+          <span>Confirm password</span>
+          <input id="confirmPassword" type="password" required placeholder="Confirm password" autocomplete="new-password" />
+        </label>
+
+        <button class="btn btn-primary btn-block" id="btnVerify" type="button" style="margin-top:12px">Reset Password</button>
+        <button class="btn btn-block" id="btnResend" type="button" style="margin-top:8px;background:transparent;border:1px solid #555" disabled>Resend code (30s)</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/js/api.js?v=3"></script>
+  <script src="/js/store.js?v=3"></script>
+  <script src="/js/ui.js?v=3"></script>
+  <script>mountThemeFab();</script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const errEl = $('err'), okEl = $('ok');
+    let currentEmail = '';
+    let timer;
+
+    function showErr(msg) { errEl.textContent = msg; errEl.style.display = 'block'; okEl.style.display = 'none'; }
+    function showOk(msg) { okEl.textContent = msg; okEl.style.display = 'block'; errEl.style.display = 'none'; }
+    function hideMsgs() { errEl.style.display = 'none'; okEl.style.display = 'none'; }
+
+    $('btnSend').onclick = async () => {
+      hideMsgs();
+      const email = $('email').value.trim();
+      if (!email) return showErr('Enter your email.');
+      
+      $('btnSend').disabled = true; $('btnSend').textContent = 'Sending…';
+      try {
+        await API.post('/auth/forgot-otp/send', { email });
+        currentEmail = email;
+        $('displayEmail').textContent = email;
+        $('step1').style.display = 'none';
+        $('step2').style.display = 'block';
+        $('subtitle').textContent = "Enter the code and your new password.";
+        startResendTimer();
+      } catch (e) {
+        showErr(e.message);
+        $('btnSend').disabled = false; $('btnSend').textContent = 'Send Code';
+      }
+    };
+
+    $('btnVerify').onclick = async () => {
+      hideMsgs();
+      const code = $('otpCode').value.trim();
+      const pw = $('newPassword').value;
+      const pw2 = $('confirmPassword').value;
+      
+      if (!/^\d{6}$/.test(code)) return showErr('Enter the 6-digit code.');
+      if (pw !== pw2) return showErr('Passwords do not match.');
+      
+      $('btnVerify').disabled = true; $('btnVerify').textContent = 'Verifying…';
+      try {
+        await API.post('/auth/forgot-otp/verify', { email: currentEmail, code, new_password: pw, confirm_password: pw2 });
+        $('step2').style.display = 'none';
+        $('subtitle').style.display = 'none';
+        showOk('Password reset successfully. Redirecting to login…');
+        setTimeout(() => location.href = '/login', 2000);
+      } catch (e) {
+        showErr(e.message);
+        $('btnVerify').disabled = false; $('btnVerify').textContent = 'Reset Password';
+      }
+    };
+
+    function startResendTimer() {
+      let s = 30;
+      const btn = $('btnResend');
+      btn.disabled = true; btn.textContent = `Resend code (${s}s)`;
+      clearInterval(timer);
+      timer = setInterval(() => {
+        s--;
+        if (s <= 0) {
+          clearInterval(timer);
+          btn.disabled = false; btn.textContent = 'Resend code';
+        } else {
+          btn.textContent = `Resend code (${s}s)`;
+        }
+      }, 1000);
+    }
+
+    $('btnResend').onclick = async () => {
+      hideMsgs();
+      $('btnResend').disabled = true;
+      try {
+        await API.post('/auth/forgot-otp/send', { email: currentEmail });
+        showOk('New code sent.');
+        startResendTimer();
+      } catch (e) {
+        showErr(e.message);
+        $('btnResend').disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>

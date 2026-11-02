@@ -1,4 +1,4 @@
-"""Shopzone — FastAPI entrypoint.
+﻿"""Shopzone â€” FastAPI entrypoint.
 
 Serves the API under /api and the static frontend (frontend/) at /.
 Single port, single command:  uvicorn app.main:app --port 8000
@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import APP_NAME, CORS_ORIGINS, FRONTEND_DIR
 from .fraud import load_models
-from .routers import admin, auth, shop
+from .routers import admin, auth, shop, otp as otp_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("shopzone")
@@ -25,11 +25,14 @@ async def lifespan(_app: FastAPI):
 
     db.init_db()  # create/verify schema (SQLite file or Neon Postgres)
     load_models()
-    logger.info("%s ready — API + frontend on this port", APP_NAME)
+    logger.info("%s ready â€” API + frontend on this port", APP_NAME)
     yield
 
 
 app = FastAPI(title="Shopzone", version="2.0.0", lifespan=lifespan)
+
+from .otp import init_otp_table
+init_otp_table()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -80,6 +83,7 @@ async def access_log(request, call_next):
 
 
 app.include_router(auth.router)
+app.include_router(otp_router.router)
 app.include_router(shop.router)
 app.include_router(admin.router)
 
