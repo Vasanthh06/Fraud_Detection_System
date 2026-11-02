@@ -27,7 +27,7 @@
       const split = document.getElementById('split');
       if (!lines.length) {
         split.innerHTML = `<div class="panel" style="grid-column:1/-1;text-align:center;padding:60px 20px">
-          <div style="font-size:44px;margin-bottom:12px">🛒</div>
+          <div style="font-size:44px;margin-bottom:12px">ðŸ›’</div>
           <h3 style="margin-bottom:8px">Your bag is empty</h3>
           <p class="muted" style="margin-bottom:20px">Browse the catalog and add something you love.</p>
           <a class="btn btn-primary" href="/shop">Start shopping</a></div>`;
@@ -36,15 +36,15 @@
       const rows = lines.map((l) => {
         const p = productById(l.id, list);
         if (!p) return '';
-        const emoji = CAT_EMOJI[p.category] || '🛍️';
+        const emoji = CAT_EMOJI[p.category] || 'ðŸ›�ï¸�';
         return `<div class="line">
           <div class="line-thumb"><span>${emoji}</span><img src="${p.image}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()"></div>
           <div class="line-info"><b>${p.name}</b><span>${p.category} · ${inr(p.price)} each</span></div>
           <div class="qty">
-            <button data-dec="${p.id}">−</button><span>${l.qty}</span><button data-inc="${p.id}">+</button>
+            <button data-dec="${p.id}">âˆ’</button><span>${l.qty}</span><button data-inc="${p.id}">+</button>
           </div>
           <span class="line-price">${inr(p.price * l.qty)}</span>
-          <button class="rm" data-rm="${p.id}" title="Remove">✕</button>
+          <button class="rm" data-rm="${p.id}" title="Remove">âœ•</button>
         </div>`;
       }).join('');
       const total = cartTotal(list);

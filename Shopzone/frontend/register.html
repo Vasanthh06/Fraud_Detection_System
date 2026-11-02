@@ -9,7 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2310b981'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%2304121a' font-family='Arial' font-weight='bold'>S</text></svg>" />
 </head>
 <body>
-  <a class="auth-back" href="/">← Home</a>
+  <a class="auth-back" href="/">â†� Home</a>
   <div class="auth-wrap">
     <div class="hero-bg"><div class="hero-grid"></div></div>
     <form class="auth-card" id="form">
@@ -23,7 +23,7 @@
       <div class="error-banner" id="err" style="display:none"></div>
       <label class="field"><span>Full name</span><input id="name" required minlength="2" placeholder="Your name" autocomplete="name" /></label>
       <label class="field"><span>Email</span><input id="email" type="email" required placeholder="you@example.com" autocomplete="email" /></label>
-      <label class="field"><span>Mobile number</span><div class="phone-group"><span class="phone-isd">🇮🇳 +91</span><input id="phone" required inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel" /></div></label>
+      <label class="field"><span>Mobile number</span><div class="phone-group"><span class="phone-isd">ðŸ‡®ðŸ‡³ +91</span><input id="phone" required inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel" /></div></label>
       <label class="field"><span>Password</span><span class="pw-wrap"><div class="password-wrapper">
   <div class="password-wrapper">
   <input id="password" type="password" required autocomplete="new-password" placeholder="Strong password" />
@@ -92,7 +92,7 @@
           password: pw,
         });
         Auth.save(data.token, data.user);
-        toast(`Welcome email sent to ${data.user.email} 📬`, 'ok');
+        toast(`Welcome email sent to ${data.user.email} ðŸ“¬`, 'ok');
         setTimeout(() => { location.href = '/shop'; }, 900);
       } catch (e2) {
         err.textContent = e2.message; err.style.display = '';

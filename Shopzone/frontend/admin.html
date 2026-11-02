@@ -12,7 +12,7 @@
   <main class="wrap">
     <a class="back-btn" href="/"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back to home</a>
     <div class="page-head">
-      <h1>🛡️ Fraud control desk</h1>
+      <h1>ðŸ›¡ï¸� Fraud control desk</h1>
       <p id="mlState">Live transaction intelligence — every gateway verdict, scored and auditable.</p>
     </div>
     <div id="content"><div class="empty"><b>Loading desk…</b></div></div>
@@ -28,7 +28,7 @@
       <div class="shield-grid">
         <div class="shield-card s1">
           <span class="shield-step">LAYER 01</span>
-          <div class="shield-ico">🔢</div>
+          <div class="shield-ico">ðŸ”¢</div>
           <h3>Structure + Luhn validation</h3>
           <p>Every card number is checked for a valid 16-digit layout and passes the Luhn
              checksum before it ever reaches the model. Bad cards are declined and struck —
@@ -36,7 +36,7 @@
         </div>
         <div class="shield-card s2">
           <span class="shield-step">LAYER 02</span>
-          <div class="shield-ico">📏</div>
+          <div class="shield-ico">ðŸ“�</div>
           <h3>Rule engine</h3>
           <p>Repeated failed attempts (+40), late-night hours (+20), unknown card networks
              (+30) and high-value orders (+25/+40) accumulate risk points — an explainable
@@ -44,11 +44,11 @@
         </div>
         <div class="shield-card s3">
           <span class="shield-step">LAYER 03</span>
-          <div class="shield-ico">🧠</div>
+          <div class="shield-ico">ðŸ§ </div>
           <h3>RandomForest ML model</h3>
           <p>A scikit-learn RandomForest trained on the transaction dataset scores
-             amount, country, hour and failed attempts. Score ≥ 80 blocks the payment,
-             50–79 flags it suspicious, and every verdict is logged.</p>
+             amount, country, hour and failed attempts. Score â‰¥ 80 blocks the payment,
+             50â€“79 flags it suspicious, and every verdict is logged.</p>
         </div>
       </div>
     </section>
@@ -134,8 +134,8 @@
         const s = await API.get('/admin/stats');
         const m = s.metrics;
         document.getElementById('mlState').innerHTML = s.ml_model_loaded
-          ? '🧠 RandomForest model <b style="color:var(--emerald)">loaded</b> — live transaction intelligence.'
-          : '⚠ ML model not found — running rule-based detection only.';
+          ? 'ðŸ§  RandomForest model <b style="color:var(--emerald)">loaded</b> — live transaction intelligence.'
+          : 'âš  ML model not found — running rule-based detection only.';
         document.getElementById('content').innerHTML = `
           <div class="metrics">
             <div class="metric"><span>Transactions</span><b>${m.total_tx}</b></div>
@@ -146,12 +146,12 @@
             <div class="metric green"><span>Success rate</span><b>${m.success_rate.toFixed(2)}%</b></div>
           </div>
           <div class="charts">
-            <section class="panel"><h3>📊 Transaction categories</h3>${bars(s.categories)}</section>
-            <section class="panel"><h3>📈 Risk score distribution</h3>${bars(s.risk_tiers)}</section>
+            <section class="panel"><h3>ðŸ“Š Transaction categories</h3>${bars(s.categories)}</section>
+            <section class="panel"><h3>ðŸ“ˆ Risk score distribution</h3>${bars(s.risk_tiers)}</section>
           </div>
-          <section class="panel" style="margin-bottom:16px"><h3>🚨 High-risk transactions (score ≥ 80)</h3>${txnTable(s.high_risk, true)}</section>
-          <section class="panel"><h3>🧾 Recent transactions</h3>${txnTable(s.recent, true)}</section>
-          <section class="panel" style="margin-top:16px"><h3>👥 Registered users — full registry</h3><div id="usersBox"><div class="empty" style="padding:20px 0">Loading users…</div></div></section>`;
+          <section class="panel" style="margin-bottom:16px"><h3>ðŸš¨ High-risk transactions (score â‰¥ 80)</h3>${txnTable(s.high_risk, true)}</section>
+          <section class="panel"><h3>ðŸ§¾ Recent transactions</h3>${txnTable(s.recent, true)}</section>
+          <section class="panel" style="margin-top:16px"><h3>ðŸ‘¥ Registered users — full registry</h3><div id="usersBox"><div class="empty" style="padding:20px 0">Loading users…</div></div></section>`;
         requestAnimationFrame(() => requestAnimationFrame(() => {
           document.querySelectorAll('.track i').forEach((i) => { i.style.width = i.dataset.w + '%'; });
         }));

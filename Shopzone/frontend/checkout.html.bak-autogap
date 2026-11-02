@@ -1,0 +1,165 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — ShopZone</title>
+  <link rel="stylesheet" href="/css/styles.css?v=3" />
+</head>
+<body>
+  <a class="auth-back" href="/cart">← Back to cart</a>
+  <div class="checkout-layout" style="max-width:1000px;margin:40px auto;padding:0 20px;display:grid;grid-template-columns:1fr 320px;gap:24px">
+    
+    <div>
+      <h1>💳 Secure payment gateway</h1>
+      <p style="opacity:0.8">🔒 PCI-style flow · Luhn validation · RandomForest fraud scoring — every attempt is logged.</p>
+      
+      <form id="form" class="auth-card" style="margin-top:24px">
+        <h3 style="margin-bottom:16px">Card details</h3>
+        <label class="field"><span>Card holder name</span><input id="cname" required placeholder="Name on card" /></label>
+        <label class="field"><span>Card number</span><input id="cnum" required placeholder="XXXX XXXX XXXX XXXX" maxlength="19" /></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <label class="field"><span>Expiry (MM/YY)</span><input id="cexp" required placeholder="MM/YY" maxlength="5" /></label>
+          <label class="field"><span>CVV</span><input id="ccvv" required placeholder="•••" maxlength="4" type="password" /></label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:16px" id="go">Pay ₹1,29,999 securely</button>
+        <p style="font-size:12px;opacity:0.6;margin-top:12px;text-align:center">Demo gateway — do not enter real card details.</p>
+      </form>
+      
+      <div style="margin-top:24px">
+        <p style="font-size:13px"><strong>🧪 Try the engine:</strong></p>
+        <p style="font-size:13px">Safe card ← 4111 1111 1111 1111<br>Fails Luhn ← 4111 1111 1111 1112</p>
+      </div>
+    </div>
+    
+    <div>
+      <div class="auth-card">
+        <h3>Order summary</h3>
+        <div id="summary" style="margin-top:16px"></div>
+        <hr style="border-color:#444;margin:16px 0">
+        <div style="display:flex;justify-content:space-between">
+          <strong>Total payable</strong>
+          <strong id="total">₹0</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Payment Processing Overlay (Hidden by default) -->
+  <div id="processing" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;place-items:center;text-align:center">
+    <div>
+      <h2 style="color:#10b981;margin-bottom:16px">Processing Payment...</h2>
+      <p id="proc-step">Validating card...</p>
+    </div>
+  </div>
+
+  <script src="/js/api.js?v=3"></script>
+  <script src="/js/store.js?v=3"></script>
+  <script src="/js/ui.js?v=3"></script>
+  <script src="/js/otp.js?v=3"></script>
+  <script>mountThemeFab();</script>
+  
+    <script>
+    // 1. Render Order Summary safely
+    const cartLines = typeof Cart !== 'undefined' ? Cart.lines() : [];
+    const summary = document.getElementById('summary');
+    let total = 0;
+    
+    if (!cartLines || cartLines.length === 0) {
+      window.location.href = '/cart';
+    }
+
+    API.get('/products').then(res => {
+      const products = res.products;
+      cartLines.forEach(line => {
+        const p = products.find(x => x.id === line.id);
+        if (p) {
+          const sub = p.price * line.qty;
+          total += sub;
+          summary.innerHTML += `
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px">
+              <span>${p.name} <br><span style="opacity:0.6">Qty ${line.qty} · ₹${p.price.toLocaleString()}</span></span>
+              <span>₹${sub.toLocaleString()}</span>
+            </div>
+          `;
+        }
+      });
+      document.getElementById('total').textContent = '₹' + total.toLocaleString();
+      document.getElementById('go').textContent = `Pay ₹${total.toLocaleString()} securely`;
+    }).catch(err => {
+      console.error("Failed to load products:", err);
+    });
+
+    // 2. Handle Payment Submit
+    document.getElementById('form').onsubmit = async (e) => {
+      e.preventDefault();
+      
+      const cname = document.getElementById('cname').value.trim();
+      const cnum = document.getElementById('cnum').value.replace(/\s/g, '');
+      const cexp = document.getElementById('cexp').value.trim();
+      const ccvv = document.getElementById('ccvv').value.trim();
+      
+      if (!cname || cnum.length < 12 || !cexp || !ccvv) {
+        alert("Please fill in all card details correctly.");
+        return;
+      }
+
+      const user = typeof Auth !== 'undefined' ? Auth.user : null;
+      const email = user ? user.email : '';
+      
+      if (!email) {
+        alert("You must be logged in to pay.");
+        window.location.href = '/login';
+        return;
+      }
+      
+      const proc = document.getElementById('processing');
+      const step = document.getElementById('proc-step');
+      proc.style.display = 'grid';
+      
+      try {
+        step.textContent = 'Sending OTP to your email...';
+        await requestOtp(email, 'payment');
+        
+        step.textContent = 'Waiting for OTP verification...';
+        showOtpModal({
+          email: email,
+          purpose: 'payment',
+          onVerified: async (otpToken) => {
+            step.textContent = 'Verifying OTP and processing payment...';
+            
+            try {
+              const result = await API.post('/pay', {
+                customer_name: cname, 
+                card_number: cnum, 
+                expiry: cexp, 
+                cvv: ccvv,
+                cart: cartLines
+              }, false, { 'X-OTP-Token': otpToken });
+              
+              proc.style.display = 'none';
+              
+              if (result.status === 'Success' || !result.declined) {
+                alert('Payment Successful!\nTransaction ID: ' + result.transaction_id);
+                Cart.clear();
+                window.location.href = '/orders';
+              } else {
+                alert('Payment Declined: ' + result.message);
+                window.location.href = '/orders';
+              }
+            } catch (err) {
+              proc.style.display = 'none';
+              alert('Payment Failed: ' + err.message);
+            }
+          }
+        });
+        
+      } catch (err) {
+        proc.style.display = 'none';
+        alert('Failed to send OTP: ' + err.message);
+      }
+    };
+  </script>
+</body>
+</html>

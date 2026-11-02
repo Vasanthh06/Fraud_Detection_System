@@ -39,13 +39,13 @@
       <div class="hero-visual" aria-hidden>
         <div class="float-card fc-1">
           <div class="fc-row">
-            <span class="fc-ico sky">💳</span>
+            <span class="fc-ico sky">ðŸ’³</span>
             <div><div class="fc-t">Card validated</div><div class="fc-s">Luhn checksum passed · Visa</div></div>
           </div>
         </div>
         <div class="float-card fc-2">
           <div class="fc-row">
-            <span class="fc-ico amber">🧠</span>
+            <span class="fc-ico amber">ðŸ§ </span>
             <div><div class="fc-t">RandomForest scoring</div><div class="fc-s">amount · hour · attempts · country</div></div>
           </div>
           <div class="fc-meter"><i></i></div>
@@ -53,7 +53,7 @@
         </div>
         <div class="float-card fc-3">
           <div class="fc-row">
-            <span class="fc-ico green">✅</span>
+            <span class="fc-ico green">âœ…</span>
             <div><div class="fc-t">Order placed</div><div class="fc-s">TXN 8f3a2c1d · logged &amp; auditable</div></div>
           </div>
         </div>
@@ -98,7 +98,7 @@
         const glows = ['var(--emerald)', 'var(--sky)', 'var(--amber)', 'var(--indigo)', 'var(--blue)', 'var(--red)'];
         document.getElementById('cats').innerHTML = names.map((c, i) => `
           <a class="cat-tile" href="/shop?cat=${encodeURIComponent(c)}" style="--tile-glow:${glows[i % glows.length]}" data-reveal data-d="${(i % 4) + 1}">
-            <span class="cat-ico">${CAT_EMOJI[c] || '🛍️'}</span>
+            <span class="cat-ico">${CAT_EMOJI[c] || 'ðŸ›�ï¸�'}</span>
             <b>${c}</b><span class="n">${counts[c]} products</span>
             <span class="go">→</span>
           </a>`).join('');

@@ -1,4 +1,4 @@
-/* ShopZone API client — same-origin /api, Bearer token in localStorage. */
+﻿/* ShopZone API client â€” same-origin /api, Bearer token in localStorage. */
 const SZ_TOKEN_KEY = 'sz_token';
 const SZ_USER_KEY = 'sz_user';
 
@@ -21,8 +21,8 @@ const Auth = {
   get isLogged() { return !!this.token && !!this.user; },
 };
 
-async function api(method, path, body, silent = false) {
-  const headers = { 'Content-Type': 'application/json' };
+async function api(method, path, body, silent = false, customHeaders = {}) {
+  const headers = { 'Content-Type': 'application/json', ...customHeaders };
   if (Auth.token) headers['Authorization'] = 'Bearer ' + Auth.token;
   const res = await fetch('/api' + path, {
     method,
@@ -47,8 +47,8 @@ async function api(method, path, body, silent = false) {
 }
 
 const API = {
-  get: (p, silent) => api('GET', p, null, silent),
-  post: (p, b, silent) => api('POST', p, b, silent),
-  put: (p, b, silent) => api('PUT', p, b, silent),
-  del: (p, silent) => api('DELETE', p, null, silent),
+  get: (p, silent, headers) => api('GET', p, null, silent, headers),
+  post: (p, b, silent, headers) => api('POST', p, b, silent, headers),
+  put: (p, b, silent, headers) => api('PUT', p, b, silent, headers),
+  del: (p, silent, headers) => api('DELETE', p, null, silent, headers),
 };

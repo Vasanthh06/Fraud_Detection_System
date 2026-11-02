@@ -1,4 +1,4 @@
-﻿/* Shared UI: navbar, footer, toasts, reveals, formatting, card helpers, product renderer. */
+/* Shared UI: navbar, footer, toasts, reveals, formatting, card helpers, product renderer. */
 
 const CAT_EMOJI = {
   Electronics: 'ðŸ“±', Computers: 'ðŸ’»', Fashion: 'ðŸ‘—', Furniture: 'ðŸ›‹ï¸', Groceries: 'ðŸ›’',
@@ -139,8 +139,8 @@ function mountFooter() {
   f.className = 'footer';
   f.innerHTML = `
     <div class="footer-in">
-      <span>Â© 2026 ShopZone Â· Secure e-commerce with ML fraud detection</span>
-      <span>RandomForest Â· Luhn Â· bcrypt Â· FastAPI</span>
+      <span>(c) 2026 ShopZone  |  Secure e-commerce with ML fraud detection</span>
+      <span>RandomForest  |  Luhn  |  bcrypt  |  FastAPI</span>
     </div>`;
   document.body.appendChild(f);
 }
@@ -260,7 +260,7 @@ function pwRules(pw) {
     { label: 'An uppercase letter (Aâ€“Z)', ok: /[A-Z]/.test(pw) },
     { label: 'A lowercase letter (aâ€“z)', ok: /[a-z]/.test(pw) },
     { label: 'A number (0â€“9)', ok: /\d/.test(pw) },
-    { label: 'A special character (!@#â€¦)', ok: /[^A-Za-z0-9]/.test(pw) },
+    { label: 'A special character (!@#...)', ok: /[^A-Za-z0-9]/.test(pw) },
   ];
 }
 function pwOk(pw) { return pwRules(pw).every((r) => r.ok); }
