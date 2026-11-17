@@ -48,3 +48,5 @@ models/*.pkl
 hash.txt
 
 hash.txt
+
+data/outbox/
