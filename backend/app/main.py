@@ -1,4 +1,4 @@
-"""Shopzone â€” FastAPI entrypoint.
+"""Shopzone — FastAPI entrypoint.
 
 Serves the API under /api and the static frontend (frontend/) at /.
 Single port, single command:  uvicorn app.main:app --port 8000
@@ -25,7 +25,7 @@ async def lifespan(_app: FastAPI):
 
     db.init_db()  # create/verify schema (SQLite file or Neon Postgres)
     load_models()
-    logger.info("%s ready â€” API + frontend on this port", APP_NAME)
+    logger.info("%s ready — API + frontend on this port", APP_NAME)
     yield
 
 

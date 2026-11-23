@@ -1,4 +1,4 @@
-﻿"""Auth routes â€” register / login / reset (bcrypt, email-OR-phone reset, no OTP)
+﻿"""Auth routes — register / login / reset (bcrypt, email-OR-phone reset, no OTP)
 plus the college validation spec:
   * email must end with .com / .in / .org
   * Indian mobile: +91 prefix, 10 digits starting 6/7/8/9

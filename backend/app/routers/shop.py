@@ -1,4 +1,4 @@
-﻿"""Shop routes â€” catalog + the payment gateway flow.
+﻿"""Shop routes — catalog + the payment gateway flow.
 
 The payment flow is a 1:1 port of the original pages/payment.py:
 structure check -> Luhn -> rule+ML scoring -> verdict -> streak/lockout ->
@@ -148,7 +148,7 @@ def pay(body: PayIn, request: Request, claims: dict = Depends(current_claims)):
             reason, "Fraud", user_email,
         )
         subj, hb = emailsvc.fraud_alert_email(
-            body.customer_name, txn_id, f"â‚¹{amount:,.2f}", f"{risk_score:.1f}%", reason, masked)
+            body.customer_name, txn_id, f"₹{amount:,.2f}", f"{risk_score:.1f}%", reason, masked)
         emailsvc.send_async(user_email, subj, hb)
         return {
             "status": "Fraud",
@@ -176,7 +176,7 @@ def pay(body: PayIn, request: Request, claims: dict = Depends(current_claims)):
             reason, "Suspicious", user_email,
         )
         subj, hb = emailsvc.receipt_email(
-            body.customer_name, txn_id, product_names, f"â‚¹{amount:,.2f}",
+            body.customer_name, txn_id, product_names, f"₹{amount:,.2f}",
             "Suspicious", f"{risk_score:.1f}%", masked, user_email)
         emailsvc.send_async(user_email, subj, hb)
         return {
@@ -193,7 +193,7 @@ def pay(body: PayIn, request: Request, claims: dict = Depends(current_claims)):
             "message": f"Suspicious Transaction Recorded | Risk Score: {risk_score:.1f}%",
         }
 
-    # Success â€” reset streak exactly like the original
+    # Success — reset streak exactly like the original
     db.reset_failed_payment_streak(user_email)
     db.save_transaction(
         txn_id, body.customer_name, product_names, masked, amount, verdict["country"],
@@ -201,7 +201,7 @@ def pay(body: PayIn, request: Request, claims: dict = Depends(current_claims)):
         reason, "Success", user_email,
     )
     subj, hb = emailsvc.receipt_email(
-        body.customer_name, txn_id, product_names, f"â‚¹{amount:,.2f}",
+        body.customer_name, txn_id, product_names, f"₹{amount:,.2f}",
         "Success", f"{risk_score:.1f}%", masked, user_email)
     emailsvc.send_async(user_email, subj, hb)
     return {
