@@ -21,10 +21,30 @@ from datetime import datetime
 import joblib
 import pandas as pd
 
-from .config import ECOM_ENCODER_PATH, ECOM_MODEL_PATH
+from .config import ECOM_ENCODER_PATH, ECOM_MODEL_PATH, MODELS_DIR, ROOT
 
 _model = None
 _encoder = None
+
+
+def _train_ecommerce_models():
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.preprocessing import LabelEncoder
+
+    csv_path = ROOT / "dataset" / "ecommerce_fraud.csv"
+    df = pd.read_csv(csv_path)
+    encoder = LabelEncoder()
+    df["country"] = encoder.fit_transform(df["country"])
+    X = df.drop("is_fraud", axis=1)
+    y = df["is_fraud"]
+
+    model = RandomForestClassifier(n_estimators=200, random_state=42)
+    model.fit(X, y)
+
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model, ECOM_MODEL_PATH)
+    joblib.dump(encoder, ECOM_ENCODER_PATH)
+    return model, encoder
 
 
 def load_models():
@@ -34,8 +54,13 @@ def load_models():
             _model = joblib.load(ECOM_MODEL_PATH)
             _encoder = joblib.load(ECOM_ENCODER_PATH)
         except Exception as exc:
-            print("ML models not found — rule-based detection only:", exc)
-            _model, _encoder = None, None
+            print("ML models missing or incompatible ? auto-training from dataset:", exc)
+            try:
+                _model, _encoder = _train_ecommerce_models()
+                print("ML models trained and cached successfully.")
+            except Exception as train_exc:
+                print("ML auto-train failed ? rule-based detection only:", train_exc)
+                _model, _encoder = None, None
     return _model, _encoder
 
 
