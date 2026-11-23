@@ -69,4 +69,6 @@ backend/**/*.bak
 # Misc
 # ============================================================
 hash.txt
-data/outbox/
+data/outbox/Shopzone/
+product-images.json
+_frontend_backup_*/
