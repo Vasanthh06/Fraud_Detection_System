@@ -1,4 +1,4 @@
-/* ShopZone API client â€” same-origin /api, Bearer token in localStorage. */
+/* ShopZone API client — same-origin /api, Bearer token in localStorage. */
 const SZ_TOKEN_KEY = 'sz_token';
 const SZ_USER_KEY = 'sz_user';
 

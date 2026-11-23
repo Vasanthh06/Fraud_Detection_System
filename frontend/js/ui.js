@@ -16,7 +16,7 @@ const CAT_EMOJI = {
   "Toys": "🧸"
 };
 
-const inr = (n) => 'â‚¹' + Number(n || 0).toLocaleString('en-IN');
+const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
 function toast(message, type = 'ok') {
   let zone = document.querySelector('.toast-zone');
@@ -196,7 +196,7 @@ function productCard(p, revealIdx) {
       <span class="card-cat">${escapeHtml(p.category)}</span>
       <b class="card-name">${escapeHtml(p.name)}</b>
       <span class="card-desc">${escapeHtml(p.desc)}</span>
-      <span class="card-rate">â˜… ${escapeHtml(p.rating)}</span>
+      <span class="card-rate">★ ${escapeHtml(p.rating)}</span>
       <div class="card-foot">
         <span class="price">${inr(p.price)}${old}</span>
         <button class="add-btn" data-add="${p.id}">Add +</button>
@@ -240,7 +240,7 @@ function bindWishButtons(root, wishSet) {
         } else {
           await API.post('/me/wishlist', { product_id: id });
           set.add(id);
-          toast(`Saved to wishlist: ${p ? p.name : 'item'} â¤`, 'ok');
+          toast(`Saved to wishlist: ${p ? p.name : 'item'} ❤`, 'ok');
         }
         sync();
       } catch (err) { toast(err.message, 'err'); }
@@ -267,16 +267,16 @@ function inPhoneOk(v) { return /^[6-9]\d{9}$/.test(v.replace(/\D/g, '').replace(
 function pwRules(pw) {
   return [
     { label: 'At least 8 characters', ok: pw.length >= 8 },
-    { label: 'An uppercase letter (Aâ€“Z)', ok: /[A-Z]/.test(pw) },
-    { label: 'A lowercase letter (aâ€“z)', ok: /[a-z]/.test(pw) },
-    { label: 'A number (0â€“9)', ok: /\d/.test(pw) },
+    { label: 'An uppercase letter (A–Z)', ok: /[A-Z]/.test(pw) },
+    { label: 'A lowercase letter (a–z)', ok: /[a-z]/.test(pw) },
+    { label: 'A number (0–9)', ok: /\d/.test(pw) },
     { label: 'A special character (!@#...)', ok: /[^A-Za-z0-9]/.test(pw) },
   ];
 }
 function pwOk(pw) { return pwRules(pw).every((r) => r.ok); }
 function renderPwChecklist(host, pw) {
   host.innerHTML = pwRules(pw).map((r) =>
-    `<span class="pw-rule ${r.ok ? 'ok' : ''}">${r.ok ? 'âœ“' : 'â—‹'} ${r.label}</span>`).join('');
+    `<span class="pw-rule ${r.ok ? 'ok' : ''}">${r.ok ? '✓' : '○'} ${r.label}</span>`).join('');
 }
 function bindEye(input, btn) {
   if (!input || !btn) return;

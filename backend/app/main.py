@@ -31,6 +31,22 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Shopzone", version="2.0.0", lifespan=lifespan)
 
+TEXT_CONTENT_TYPES = (
+    "text/html",
+    "text/css",
+    "application/javascript",
+    "text/javascript",
+    "application/json",
+)
+
+@app.middleware("http")
+async def ensure_utf8_charset(request: Request, call_next):
+    response = await call_next(request)
+    content_type = response.headers.get("content-type", "")
+    if content_type.startswith(TEXT_CONTENT_TYPES) and "charset=" not in content_type.lower():
+        response.headers["content-type"] = f"{content_type}; charset=utf-8"
+    return response
+
 from .otp import init_otp_table
 init_otp_table()
 app.add_middleware(
@@ -104,7 +120,7 @@ if (FRONTEND_DIR / "index.html").exists():
 
     @app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
     def index():
-        return FileResponse(str(FRONTEND_DIR / "index.html"))
+        return FileResponse(str(FRONTEND_DIR / "index.html"), media_type="text/html; charset=utf-8")
 
     @app.api_route("/{page}", methods=["GET", "HEAD"], include_in_schema=False)
     def page(page: str):
@@ -112,8 +128,8 @@ if (FRONTEND_DIR / "index.html").exists():
             return JSONResponse(status_code=404, content={"detail": "Unknown endpoint."})
         name = page[:-5] if page.endswith(".html") else page
         if name in PAGES:
-            return FileResponse(str(FRONTEND_DIR / f"{name}.html"))
+            return FileResponse(str(FRONTEND_DIR / f"{name}.html"), media_type="text/html; charset=utf-8")
         candidate = (FRONTEND_DIR / page).resolve()
         if candidate.is_file() and str(candidate).startswith(str(FRONTEND_DIR.resolve())):
             return FileResponse(str(candidate))
-        return FileResponse(str(FRONTEND_DIR / "index.html"))
+        return FileResponse(str(FRONTEND_DIR / "index.html"), media_type="text/html; charset=utf-8")
